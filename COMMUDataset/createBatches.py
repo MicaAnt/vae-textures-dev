@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 csv_path = "./CommuVAEDataset.csv"
-batch_size = 100
+batch_size = 5000
 batch_dir = "./batches"
 
 # Garante que o diretório existe

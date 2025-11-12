@@ -39,8 +39,8 @@ This script outputs:
 - `z_chd` – latent vector associated with the **chord** encoding.
 - `z_txt` – latent vector associated with the **texture** encoding.
 - `kl_loss` – total Kullback–Leibler divergence between posterior and prior.
-- `kl_chd` – KL divergence for the chord latent variable.
-- `kl_rhy` – KL divergence for the rhythm latent variable.
+- `kl_chd` – KL divergence for the **chord** latent variable.
+- `kl_rhy` – KL divergence for the **texture** latent variable.
 - `final_loss` – total reconstruction loss of the VAE.
 
 These outputs can be used to:
@@ -84,3 +84,24 @@ These outputs can be used to:
 - The dataset for the VAE model was generated using the notebook `FilterCommuDataset`
 - The folder COMMUDataset was included in the project. The `midiFiles` folder are the original `raw` data and the `npzFiles` folder the preocessed data using the function `processMidiBatch`. `createBatches.py` allows the creation of batches data stores in the `batches` folder. 
 - A new function called `processMidiBatch.py` was created to process the raw `.mid` data into `.npz` data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

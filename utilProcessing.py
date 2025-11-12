@@ -461,9 +461,18 @@ def getMetaData(csv_path="../midiDataTest/commu_meta.csv", track_id="commu00001"
     if row is None:
         raise ValueError(f"Track id {track_id} not found")
     
+    audio_key = row["audio_key"]
+    chord_progressions = row["chord_progressions"]
+    pitch_range = row["pitch_range"]
+    num_measures = row["num_measures"]
+    bpm = row["bpm"]
+    genre = row["genre"]
     track_role = row["track_role"]
+    inst = row["inst"]
+    sample_rhythm = row["sample_rhythm"]
+    time_signature = row["time_signature"]
 
-    return track_role
+    return audio_key, chord_progressions, pitch_range, num_measures, bpm, genre, track_role, inst, sample_rhythm, time_signature 
 
 #----------------- Main function to process midi files
 
@@ -486,8 +495,9 @@ def GenDataSet(trackId="commu00002", dataSetPath="../midiDataTest/", csv_path=".
 
     # Metadata
 
-    track_role = getMetaData(csv_path, trackId)
-
+    (audio_key, chord_progressions, pitch_range, num_measures, bpm, 
+     genre, track_role, inst, sample_rhythm, time_signature) = getMetaData(csv_path, trackId)
+        
     # Caminho de saída
     #save_path = f"../{trackId}.npz"
     save_path = os.path.join(output_dir, f"{trackId}.npz")
@@ -501,7 +511,17 @@ def GenDataSet(trackId="commu00002", dataSetPath="../midiDataTest/", csv_path=".
         melody=melody,
         bridge=bridge,
         piano=piano,
-        track_role = track_role
+        
+        audio_key = audio_key,
+        chord_progressions = chord_progressions,
+        pitch_range = pitch_range,
+        num_measures = num_measures,
+        bpm = bpm,
+        genre = genre, 
+        track_role = track_role,
+        inst = inst,
+        sample_rhythm = sample_rhythm,
+        time_signature = time_signature
     )
 
     print(f"Arquivo salvo em {save_path}")

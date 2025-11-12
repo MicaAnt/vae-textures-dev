@@ -37,7 +37,7 @@ def load_model(device):
 
 
 def main():
-    data_path = './dataSet/POP09-PIANOROLL-4-bin-quantization/001.npz'
+    data_path = '../dataSet/POP09-PIANOROLL-4-bin-quantization/001.npz'
     model = load_model(device=None)
     x, c, pr_mat = load_sample(data_path)
     x, c, pr_mat = prepare_tensors(x, c, pr_mat, model.device)

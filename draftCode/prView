@@ -40,9 +40,9 @@ def plot_quant_pianoroll(midi_data):
     plt.xlabel("Time (subdivided into semiquavers)")
     plt.ylabel("Pitch")
     plt.title("Piano Roll Representation with Semiquaver Resolution")
-    plt.savefig("testePR2")
+    plt.savefig("testePR3")
 
-dados = midiFileTo4bin(midi_path = "../midiDataTest/commu00002.mid")
+dados = midiFileTo4bin(midi_path = "../midiDataTest/commu00003.mid")
 
 if __name__ == "__main__":
     plot_quant_pianoroll(dados)

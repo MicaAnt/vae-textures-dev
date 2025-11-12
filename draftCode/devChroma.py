@@ -33,8 +33,15 @@ def prToChroma(notes: np.ndarray) -> np.ndarray:
     if notes.size == 0:
         return np.zeros((0, 13), dtype=int)
 
-    beat_on = notes[:, 0]
-    beat_off = notes[:, 3]
+    #beat_on = notes[:, 0]
+    #beat_off = notes[:, 3]
+    #beat_on_full = notes[:, 0] + notes[:, 1] / notes[:, 2]
+    #beat_off_full = notes[:, 3] + notes[:, 4] / notes[:, 5]
+
+    #beat_on = beat_on_full
+    #beat_off = beat_off_full
+    beat_on = notes[:, 0] + notes[:, 1] / notes[:, 2]
+    beat_off = notes[:, 3] + notes[:, 4] / notes[:, 5]
     pitches = notes[:, 6].astype(int)
 
     start_beat = int(np.floor(beat_on.min()))
@@ -46,6 +53,8 @@ def prToChroma(notes: np.ndarray) -> np.ndarray:
 
     for b in range(start_beat, end_beat):
         mask = (beat_on <= b) & (b < beat_off)
+        # include notes that start or end within this beat
+        mask = (beat_on < b + 1) & (beat_off > b) # incluiu essa linha, mas tem um problema na nota mais grave
         active_pitches = pitches[mask]
         if active_pitches.size == 0:
             continue
@@ -74,6 +83,6 @@ print("Dados", dados)
 print("Fundamentais", funds)
 
 #print("Shape dos dados", dados.shape)
-#print("Shape das fundamentais", funds.shape)
+print("Shape das fundamentais", funds.shape)
 print("Shape de Chroma", chroma.shape)
 

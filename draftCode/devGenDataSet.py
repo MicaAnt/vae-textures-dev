@@ -52,6 +52,6 @@ def GenDataSet(trackId="commu00002", dataSetPath="../midiDataTest/", csv_path=".
         piano=piano
     )
 
-    print(f"✅ Arquivo salvo em {save_path}")
+    print(f"Arquivo salvo em {save_path}")
 
 GenDataSet()

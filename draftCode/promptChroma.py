@@ -26,5 +26,5 @@ dadosExemplo = dados[:4]
 pitches = dados[:, [6]].flatten()
 pitchClasses = midiToPitchClass(pitches)
 
-print(pitches)
-print(pitchClasses)
+print("Pitches", pitches)
+print("Pitch Classes", pitchClasses)
