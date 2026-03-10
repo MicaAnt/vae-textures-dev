@@ -1,3 +1,7 @@
+# GitLab Repo       : https://gitlab.lis-lab.fr/sicomp/dcli
+# Tutos             : https://gitlab.lis-lab.fr/sicomp/devcontainer_formation
+# Contact us        : https://mattermost.lis-lab.fr/cluster
+
 # Init
 
 cd vae-tuning-texutres/COMMUDataset/
