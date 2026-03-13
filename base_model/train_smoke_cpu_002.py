@@ -26,7 +26,7 @@ def set_seed(seed: int) -> None:
 def build_model(device: torch.device) -> DisentangleVAE:
     """Builds the same module family used in interface.py, without weights."""
     chd_encoder = ChordEncoder(36, 1024, 256)
-    # TextureEncoder expects pr_mat with shape (B, 32, 128), exactly the smoke
+    # TextureEncoder expects pr_mat with shape (B, 32, 128), exactly the smoke ???????
     # input tensor from this script.
     txt_encoder = TextureEncoder(256, 1024, 256, 10)
     chd_decoder = ChordDecoder(z_dim=256)
