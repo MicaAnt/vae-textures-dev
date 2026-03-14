@@ -297,9 +297,9 @@ def prepare_dataset(seed, bs_train, bs_val,
                     portion=8, shift_low=-6, shift_high=5, num_bar=2,
                     contain_chord=False, random_train=True, random_val=False):
     fns = collect_data_fns()
-    import pickle
-    with open('data/indCOMMU.pkl', 'rb') as f:
-        fns = pickle.load(f)
+#    import pickle
+#    with open('data/indCOMMU.pkl', 'rb') as f:
+#        fns = pickle.load(f)
     np.random.seed(seed)
     train_ids, val_ids = split_dataset(len(fns), portion)
     train_set = wrap_dataset(fns, train_ids, shift_low, shift_high,
