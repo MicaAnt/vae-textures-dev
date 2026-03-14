@@ -2,6 +2,7 @@ import numpy as np
 from torch.utils.data import Dataset
 import glob
 import os
+import re 
 import pandas as pd
 from score import PolyphonicMusic
 from torch.utils.data import DataLoader
@@ -211,15 +212,42 @@ def convert_note(pitch, chroma_state, root, bass, deg_table, semi_table):
         raise NotImplementedError
     return 0, is_bass, octave, scale_deg, n_state
 
+def _extract_song_id(value):
+    if pd.isna(value):
+        return None
+    
+    match = re.search(r'(\d+)$', str(value))
+    if match is None:
+        return None
+    
+    return int(match.group(1))
 
 def collect_data_fns():
     valid_files = []
     files = glob.glob(os.path.join(DATA_PATH, '*.npz'))
     print('The folder contains %d .npz files.' % len(files))
     df = pd.read_excel(INDEX_FILE_PATH)
+    
+    # Suporta song_id no Excel como "commu00001" ou como inteiro
+
+    df = df.copy()
+    df['song_id_numeric'] = df["song_id"].apply(_extract_song_id)    
+    
     for file in files:
-        song_id = file.split('/')[-1][0: 3]
-        meta_data = df[df.song_id == int(song_id)]
+        # song_id = file.split('/')[-1][0: 3]
+        # meta_data = df[df.song_id == int(song_id)]
+        filename = os.path.basename(file)
+        stem = os.path.splitext(filename)[0]
+
+        # Ex.: commu10952.npz -> 10952
+        song_id = _extract_song_id(stem)
+        if song_id is None:
+            continue
+
+        meta_data = df[df.song_id_numeric == song_id]
+        if meta_data.empty:
+            continue
+
         num_beats = meta_data.num_beats_per_measure.values[0]
         if int(num_beats) == 4:
             valid_files.append(file)
