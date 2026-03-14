@@ -10,8 +10,12 @@ from converter import ext_nmat_to_pr, ext_nmat_to_mel_pr, \
     augment_pr, augment_mel_pr, pr_to_onehot_pr, piano_roll_to_target, \
     target_to_3dtarget, expand_chord
 
-DATA_PATH = os.path.join('data', 'COMMUnpzFiles')
-INDEX_FILE_PATH = os.path.join('data', 'CommuVAEDataset.xlsx')
+# DATA_PATH = os.path.join('data', 'COMMUnpzFiles')
+# INDEX_FILE_PATH = os.path.join('data', 'CommuVAEDataset.xlsx')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, 'data', 'COMMUnpzFiles')
+INDEX_FILE_PATH = os.path.join(BASE_DIR, 'data', 'CommuVAEDataset.xlsx')
+INDICES_CACHE_PATH = os.path.join(BASE_DIR, 'data', 'indCOMMU.pkl')
 SEED = 3345
 
 
