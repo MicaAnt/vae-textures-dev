@@ -1,3 +1,13 @@
+"""
+COMMU-specific dataset pipeline for VAE training.
+
+Key differences vs `dataset.py`:
+- Uses COMMU data sources (`data/COMMUnpzFiles`, `CommuVAEDataset.xlsx`).
+- Resolves paths from this file's directory so loading is independent of CWD.
+- Normalizes `song_id` from both filenames and metadata (e.g. `commu06755` -> `6755`).
+- Filters candidates to 4/4 meter and ignores files/rows with non-parsable IDs.
+- Avoids relying on legacy pickled file-index caches that may contain stale paths.
+"""
 import numpy as np
 from torch.utils.data import Dataset
 import glob
@@ -255,7 +265,7 @@ def collect_data_fns():
         num_beats = meta_data.num_beats_per_measure.values[0]
         if int(num_beats) == 4:
             valid_files.append(file)
-    print('Selected %d files, all are in duple meter.' % len(valid_files))
+    print('Selected %d files, all are in quadruple meter.' % len(valid_files))
     return valid_files
 
 
