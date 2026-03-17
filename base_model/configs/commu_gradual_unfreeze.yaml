@@ -1,0 +1,64 @@
+experiment:
+  name: commu-gradual-unfreeze
+  seed: 3345
+  device: cpu
+  output_dir: result_experiments/commu_gradual_unfreeze
+
+data:
+  portion: 8
+  shift_low: -6
+  shift_high: 5
+  num_bar: 2
+  contain_chord: true
+  random_train: false
+  random_val: false
+  limit_train_samples: 100
+  limit_val_samples: 20
+
+model:
+  chd_latent_dim: 256
+  rhy_latent_dim: 256
+  num_channel: 10
+
+train:
+  epochs: 4
+  max_steps: 120
+  batch_size: 2
+  val_batch_size: 2
+  clip_grad_norm: 1.0
+  log_every: 10
+  val_max_batches: 1
+  optimizer:
+    lr: 0.001
+  teacher_forcing:
+    tfr1: 0.6
+    tfr2: 0.5
+    tfr3: 0.5
+    tfr1_schedule:
+      type: linear
+      mode: step
+      start: 0.6
+      end: 0.2
+      total_steps: 120
+  loss:
+    beta: 0.1
+    weights: [1.0, 0.5]
+    beta_schedule:
+      type: linear
+      mode: epoch
+      start: 0.05
+      end: 0.2
+      total_epochs: 4
+
+freeze:
+  policy: gradual_unfreeze
+  initial_train_only_modules: [decoder, chd_decoder]
+  unfreeze_at_epochs:
+    - epoch: 2
+      modules: [rhy_encoder]
+    - epoch: 3
+      modules: [chd_encoder]
+
+checkpoint:
+  save_every_steps: 25
+
