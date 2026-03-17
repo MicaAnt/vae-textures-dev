@@ -1,0 +1,56 @@
+{
+  "experiment": {
+    "name": "commu-smoke-minimal",
+    "seed": 3345,
+    "device": "cpu",
+    "output_dir": "result_experiments/commu_smoke_minimal"
+  },
+  "data": {
+    "portion": 8,
+    "shift_low": -6,
+    "shift_high": 5,
+    "num_bar": 2,
+    "contain_chord": true,
+    "random_train": false,
+    "random_val": false,
+    "limit_train_samples": 4,
+    "limit_val_samples": 2
+  },
+  "model": {
+    "chd_latent_dim": 256,
+    "rhy_latent_dim": 256,
+    "num_channel": 10
+  },
+  "train": {
+    "epochs": 1,
+    "max_steps": 2,
+    "batch_size": 1,
+    "val_batch_size": 1,
+    "clip_grad_norm": 1.0,
+    "log_every": 1,
+    "val_max_batches": 1,
+    "optimizer": {
+      "lr": 0.001,
+      "weight_decay": 0.0
+    },
+    "teacher_forcing": {
+      "tfr1": 0.6,
+      "tfr2": 0.5,
+      "tfr3": 0.5
+    },
+    "loss": {
+      "beta": 0.1,
+      "weights": [
+        1.0,
+        0.5
+      ]
+    }
+  },
+  "freeze": {
+    "policy": "no_freeze"
+  },
+  "checkpoint": {
+    "save_every_steps": 1,
+    "include_optimizer_state": false
+  }
+}

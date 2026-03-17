@@ -75,7 +75,9 @@ def main():
     max_steps = train_cfg.get('max_steps', 100)
     max_epochs = train_cfg.get('epochs', 1)
     log_every = train_cfg.get('log_every', 10)
-    save_every = cfg.get('checkpoint', {}).get('save_every_steps', 50)
+    ckpt_cfg = cfg.get('checkpoint', {})
+    save_every = ckpt_cfg.get('save_every_steps', 50)
+    include_optimizer_state = ckpt_cfg.get('include_optimizer_state', True)
 
     global_step = 0
     best_val = float('inf')
@@ -127,7 +129,18 @@ def main():
 
             if (global_step + 1) % save_every == 0:
                 paths = checkpoint_paths(output_dir, epoch, global_step + 1)
-                save_checkpoint(paths['periodic'], model, optimizer, epoch, global_step + 1, best_val)
+                try:
+                    save_checkpoint(
+                        paths['periodic'],
+                        model,
+                        optimizer,
+                        epoch,
+                        global_step + 1,
+                        best_val,
+                        include_optimizer_state=include_optimizer_state,
+                    )
+                except Exception as exc:
+                    print(f'[checkpoint][warn] falha ao salvar periódico: {exc}')
 
             global_step += 1
 
@@ -136,10 +149,32 @@ def main():
         print(f'[val] epoch={epoch} step={global_step} val_loss={val_loss:.4f}')
 
         paths = checkpoint_paths(output_dir, epoch, global_step)
-        save_checkpoint(paths['last'], model, optimizer, epoch, global_step, best_val)
+        try:
+            save_checkpoint(
+                paths['last'],
+                model,
+                optimizer,
+                epoch,
+                global_step,
+                best_val,
+                include_optimizer_state=include_optimizer_state,
+            )
+        except Exception as exc:
+            print(f'[checkpoint][warn] falha ao salvar last.pt: {exc}')
         if val_loss < best_val:
             best_val = val_loss
-            save_checkpoint(paths['best'], model, optimizer, epoch, global_step, best_val)
+            try:
+                save_checkpoint(
+                    paths['best'],
+                    model,
+                    optimizer,
+                    epoch,
+                    global_step,
+                    best_val,
+                    include_optimizer_state=include_optimizer_state,
+                )
+            except Exception as exc:
+                print(f'[checkpoint][warn] falha ao salvar best.pt: {exc}')
 
         if global_step >= max_steps:
             break
@@ -150,4 +185,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
