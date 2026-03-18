@@ -1,8 +1,8 @@
 experiment:
-  name: commu-smoke-minimal
+  name: commu-smoke-minimal_18032026-1158
   seed: 3345
   device: cpu
-  output_dir: result_experiments/commu_smoke_minimal
+  output_dir: result_experiments/commu_smoke_minimal_18032026-1158
 
 data:
   portion: 8
@@ -43,6 +43,6 @@ freeze:
   policy: no_freeze
 
 checkpoint:
-  save_every_steps: 1
-  include_optimizer_state: false
+  save_every_steps: 2
+  include_optimizer_state: true
 

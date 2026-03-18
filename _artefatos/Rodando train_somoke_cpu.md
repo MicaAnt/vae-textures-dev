@@ -2,6 +2,8 @@
 # Tutos             : https://gitlab.lis-lab.fr/sicomp/devcontainer_formation
 # Contact us        : https://mattermost.lis-lab.fr/cluster
 
+https://www.codecademy.com/article/variational-autoencoder-tutorial-vaes-explained
+
 # Rodando train_smoke_cpu
 
 # Questões
@@ -30,7 +32,25 @@
 
 # Pra rodar o smoke
 
+python trainCOMMU_smoke_cpu_002.py --epochs 1 --max-steps 5 --batch-size 1 --log-every 1 --limit-train-samples 8 --limit-val-samples 4 --output-dir result_smoke_cpu
+
 python train_smoke_cpu_002.py --epochs 1 --max-steps 5 --batch-size 1 --log-every 1 --limit-train-samples 8 --limit-val-samples 4 --output-dir result_smoke_cpu
+
+# 16/03/2026
+
+- Vou começar rodando o código com o COMMU...
+
+## Documentação
+
+- Eu preciso transformar o trainCOMMU_smoke_cpu_002.py em um configurable experiment runner. Mas antes, eu gostaria de documentar muito bem esse script pra saber onde eu devo fazer as alterações.
+- Faça uma documentação pra mim que contenha:
+	- Dependencias
+	- Funções - o que elas fazem? O que entra e o que sai de cada função?
+	- Relação entre as diferentes funções dentro do script geral 
+
+
+
+
 
 # 13/03/2026
 
@@ -136,6 +156,8 @@ Traceback (most recent call last):
 ValueError: invalid literal for int() with base 10: 'com'
 
 ```
+
+
 
 # 11/03/2026
 

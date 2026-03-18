@@ -1,3 +1,62 @@
+
+# 18 de Março de 2026 
+
+# 12:45 - Update Git
+
+## Teste 2 
+
+### Código 
+
+**No terminal**
+
+```
+python base_model/experiments/runner.py --config base_model/configs/commu_smoke_minimal.yaml
+
+```
+
+**Opção no `commu_smoke_minimal.yaml`**
+
+```
+name: commu-smoke-minimal_18032026-1158
+save_every_steps: 2
+output_dir: result_experiments/commu_smoke_minimal_18032026-1158
+include_optimizer_state: true
+```
+
+## Saída 
+
+No bugs...
+
+
+## Teste 1
+
+### Código 
+
+**No terminal**
+
+```
+python base_model/experiments/runner.py --config base_model/configs/commu_smoke_minimal.yaml
+
+```
+
+**Opção no `commu_smoke_minimal.yaml`**
+
+```
+name: commu-smoke-minimal_18032026-1158
+output_dir: result_experiments/commu_smoke_minimal_18032026-1158
+include_optimizer_state: true
+```
+
+## Saída 
+
+No bugs...
+
+
+## Ação
+
+Vou começar vendo o script commu_smoke_minimal e checkpoint pra ver como eles salvam meus arquivos...
+
+
 # 17 de Março de 2026
 
 ## Teste 1 - 13:09
@@ -42,7 +101,7 @@ RuntimeError: [enforce fail at inline_container.cc:603] . unexpected pos 1400597
 
 
 ```
-## Teste 1 - 13:46
+## Teste 2 - 13:46
 
 ### Modificação nos seguintes arquivos
 
@@ -69,4 +128,26 @@ include_optimizer_state: false
 
 Rodou tudo certo, com saida em `result_experiments`
 
-# 14:04 - Update no Github
+## 14:04 - Update no Github
+
+## Teste 3 - 14:50 
+
+### Código 
+
+**No terminal**
+
+```
+python base_model/experiments/runner.py --config base_model/configs/commu_smoke_minimal.yaml
+
+```
+
+**Opção no `commu_smoke_minimal.yaml`**
+
+```
+name: commu-smoke-minimal_17032026_1449
+include_optimizer_state: true
+```
+
+## Saída 
+
+-> Aparentemente ele não salvou a saída! :/
