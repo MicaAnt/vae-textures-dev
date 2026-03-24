@@ -1,0 +1,58 @@
+experiment:
+  name: commu-smoke-minimal_18032026-1301_origModel
+  seed: 3345
+  device: cpu
+  output_dir: result_experiments/commu_smoke_minimal_18032026-1301_origModel
+
+data:
+  portion: 8
+  shift_low: -6
+  shift_high: 5
+  num_bar: 2
+  contain_chord: true
+  random_train: false
+  random_val: false
+  limit_train_samples: 4
+  limit_val_samples: 2
+
+model:
+  chd_latent_dim: 256
+  rhy_latent_dim: 256
+  num_channel: 10
+
+train:
+  epochs: 2
+  max_steps: 10
+  batch_size: 10
+  val_batch_size: 10
+  clip_grad_norm: 1.0
+  log_every: 1
+  val_max_batches: 10
+  optimizer:
+    lr: 0.001
+    weight_decay: 0.0
+  teacher_forcing:
+    tfr1: 0.6
+    tfr2: 0.5
+    tfr3: 0.5
+  loss:
+    beta: 0.1
+    weights: [1.0, 0.5]
+  # Carregar somente pesos (pretrained), sem retomar estado do treino:
+  pretrained_path: ./model_param/polydis-v1.pt
+  pretrained_strict: true
+  # Retomar sessão de treino a partir de checkpoint do runner:
+  # resume:
+  #   from_checkpoint: result_experiments/commu_smoke_minimal/checkpoints/last.pt
+  #   load_optimizer_state: true
+  #   strict: true
+  #   start_batch_in_epoch: null
+  #   advance_epoch_on_boundary: true
+
+freeze:
+  policy: no_freeze
+
+checkpoint:
+  save_every_steps: 11
+  include_optimizer_state: true
+
