@@ -1,4 +1,4 @@
-from dataset import prepare_dataset
+from datasetCOMMU import prepare_dataset
 from amc_dl.torch_plus import DataLoaders
 from amc_dl.torch_plus import TrainingInterface
 

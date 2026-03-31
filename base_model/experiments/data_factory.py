@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader, Subset
 
 from dataset import SEED
-from dataset_loaders import MusicDataLoaders
+from dataset_loaders_commu import MusicDataLoaders
 
 
 def make_commu_loaders(data_cfg: dict, train_batch_size: int, val_batch_size: int):

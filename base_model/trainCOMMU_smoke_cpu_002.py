@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, Subset
 
 from model import DisentangleVAE
 from dl_modules import ChordEncoder, ChordDecoder, TextureEncoder, PianoTreeDecoder
-from dataset_loaders import MusicDataLoaders
+from dataset_loaders_commu import MusicDataLoaders
 from dataset import SEED
 
 

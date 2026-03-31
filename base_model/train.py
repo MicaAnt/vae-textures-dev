@@ -1,3 +1,4 @@
+import os
 import warnings
 
 warnings.simplefilter('ignore', UserWarning)
@@ -12,25 +13,39 @@ from amc_dl.torch_plus import LogPathManager, SummaryWriters, \
 from amc_dl.torch_plus.train_utils import kl_anealing
 import torch
 from torch import optim
+from torch.utils.data import DataLoader, Subset
+
+
+def env_int(name, default):
+    value = os.getenv(name)
+    return default if value is None else int(value)
+
+
+def env_float(name, default):
+    value = os.getenv(name)
+    return default if value is None else float(value)
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 readme_fn = './train.py'
-batch_size = 128
-n_epoch = 6
+batch_size = env_int('VAE_BATCH_SIZE', 128)
+n_epoch = env_int('VAE_N_EPOCH', 6)
 clip = 1
 parallel = False
 weights = [1, 0.5]
 beta = 0.1
 tf_rates = [(0.6, 0), (0.5, 0), (0.5, 0)]
-lr = 1e-3
-name = 'disvae-nozoth'
+lr = env_float('VAE_LR', 1e-3)
+name = os.getenv('VAE_RUN_NAME', 'disvae-nozoth')
+limit_train_samples = env_int('VAE_LIMIT_TRAIN_SAMPLES', 0)
+limit_val_samples = env_int('VAE_LIMIT_VAL_SAMPLES', 0)
 
 parallel = parallel if torch.cuda.is_available() and \
                        torch.cuda.device_count() > 1 else False
 # train_model
 chd_encoder = RnnEncoder(36, 1024, 256)
-rhy_encoder = PtvaeEncoder(device=device, z_size=256, max_pitch=39 - 8, min_pitch=0)
-# rhy_encoder = TextureEncoder(256, 1024, 256)
+rhy_encoder = TextureEncoder(256, 1024, 256)
+# rhy_encoder = PtvaeEncoder(device=device, z_size=256, max_pitch=39 - 8, min_pitch=0)
 # pt_encoder = PtvaeEncoder(device=device, z_size=152)
 chd_decoder = RnnDecoder(z_dim=256)
 pt_decoder = PtvaeDecoder(note_embedding=None,
@@ -44,6 +59,26 @@ data_loaders = \
                                  portion=8, shift_low=-6, shift_high=5,
                                  num_bar=2,
                                  contain_chord=True)
+
+# Optional sample limits keep the canonical entrypoint intact while allowing
+# short local proof runs before committing to a full reproduction run.
+if limit_train_samples > 0:
+    train_dataset = data_loaders.train_loader.dataset
+    train_subset = Subset(train_dataset,
+                          list(range(min(limit_train_samples,
+                                         len(train_dataset)))))
+    data_loaders.train_loader = DataLoader(train_subset,
+                                           batch_size=batch_size,
+                                           shuffle=False)
+
+if limit_val_samples > 0:
+    val_dataset = data_loaders.val_loader.dataset
+    val_subset = Subset(val_dataset,
+                        list(range(min(limit_val_samples,
+                                       len(val_dataset)))))
+    data_loaders.val_loader = DataLoader(val_subset,
+                                         batch_size=batch_size,
+                                         shuffle=False)
 
 log_path_mng = LogPathManager(readme_fn)
 
