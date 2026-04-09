@@ -1,0 +1,32 @@
+# Git and local metadata
+.git/
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+
+# Local/derived training outputs
+result_*/
+result_experiments/
+losses/
+losses909ToPlot/
+base_model/result_*/
+base_model/ExperimentoTeste/
+wandb/
+*.pt
+*.pth
+*.ckpt
+*.wandb
+*.out
+*.err
+
+# Large datasets and generated corpora already managed separately
+COMMUDataset/
+commuTestNPZ/
+dataSet/
+base_model/data/
+midiDataTest/
+latent_features/
+features/
+
+# Notebook work that should not drive cluster sync by default
+NotebooksVAESymTex/.ipynb_checkpoints/
