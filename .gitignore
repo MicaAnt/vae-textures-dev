@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Local experiment outputs and checkpoints
+result_experiments/**/checkpoints/
+result_experiments/**/*.pt
+result_experiments/**/metrics.jsonl
+
+# Common training artifacts
+*.out
+*.err
+# Local presentation and scratch notes
+.local-notes/

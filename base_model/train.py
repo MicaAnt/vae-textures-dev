@@ -14,6 +14,7 @@ from amc_dl.torch_plus.train_utils import kl_anealing
 import torch
 from torch import optim
 from torch.utils.data import DataLoader, Subset
+from wandb_helper import WandbRunLogger, env_flag
 
 
 def env_int(name, default):
@@ -39,6 +40,7 @@ lr = env_float('VAE_LR', 1e-3)
 name = os.getenv('VAE_RUN_NAME', 'disvae-nozoth')
 limit_train_samples = env_int('VAE_LIMIT_TRAIN_SAMPLES', 0)
 limit_val_samples = env_int('VAE_LIMIT_VAL_SAMPLES', 0)
+wandb_enabled = env_flag('WANDB_ENABLED', False)
 
 parallel = parallel if torch.cuda.is_available() and \
                        torch.cuda.device_count() > 1 else False
@@ -101,10 +103,38 @@ params_dic = dict(tfr1=tfr1_scheduler, tfr2=tfr2_scheduler,
                   beta=beta_scheduler, weights=weights_scheduler)
 param_scheduler = ParameterScheduler(**params_dic)
 
+wandb_config = {
+    'run_name': name,
+    'device': str(device),
+    'batch_size': batch_size,
+    'n_epoch': n_epoch,
+    'learning_rate': lr,
+    'clip': clip,
+    'beta': beta,
+    'weights': weights,
+    'tf_rates': tf_rates,
+    'parallel': parallel,
+    'limit_train_samples': limit_train_samples,
+    'limit_val_samples': limit_val_samples,
+    'seed': SEED,
+    'shift_low': -6,
+    'shift_high': 5,
+    'num_bar': 2,
+    'contain_chord': True,
+    'train_portion': 8,
+    'writer_names': writer_names,
+}
+
+run_logger = WandbRunLogger.from_env(name, wandb_config, log_path_mng)
+
 training = TrainingVAE(device, model, parallel, log_path_mng,
                        data_loaders, summary_writers, optimizer_scheduler,
-                       param_scheduler, n_epoch)
-training.run()
+                       param_scheduler, n_epoch, run_logger=run_logger)
+try:
+    training.run()
+finally:
+    if run_logger is not None:
+        run_logger.finish()
 
 if __name__ == '__main__':
     pass

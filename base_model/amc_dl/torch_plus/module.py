@@ -78,6 +78,7 @@ class TrainingInterface:
         self.train_step = 0
         self.val_step = 0
         self.parallel = parallel
+        self.run_logger = kwargs.pop('run_logger', None)
         for key, val in kwargs.items():
             setattr(self, key, val)
 
@@ -146,6 +147,8 @@ class TrainingInterface:
             batch_loss_dic = self._write_loss_to_dic(outputs)
             self.summary_writers.write_task('train', batch_loss_dic,
                                             self.train_step)
+            if self.run_logger is not None:
+                self.run_logger.log_task_metrics('train', batch_loss_dic, self.train_step)
             self.train_step += 1
         return epoch_loss_dic
 
@@ -173,6 +176,8 @@ class TrainingInterface:
             batch_loss_dic = self._write_loss_to_dic(outputs)
             self.summary_writers.write_task('val', batch_loss_dic,
                                             self.val_step)
+            if self.run_logger is not None:
+                self.run_logger.log_task_metrics('val', batch_loss_dic, self.val_step)
             self.val_step += 1
         return epoch_loss_dic
 
@@ -191,6 +196,8 @@ class TrainingInterface:
             f'\tTrain Loss: {train_loss:.3f}', flush=True)
         print(
             f'\t Valid. Loss: {valid_loss:.3f}', flush=True)
+        if self.run_logger is not None:
+            self.run_logger.log_epoch_metrics(self.epoch + 1, train_loss, valid_loss, epoch_mins, epoch_secs)
 
     def run(self, start_epoch=0, start_train_step=0, start_val_step=0):
         self.epoch = start_epoch
@@ -203,13 +210,20 @@ class TrainingInterface:
             train_loss = self.train()['loss']
             val_loss = self.eval()['loss']
             end_time = time.time()
-            self.save_model(self.path_mng.epoch_model_path(self.name))
+            epoch_model_path = self.path_mng.epoch_model_path(self.name)
+            self.save_model(epoch_model_path)
             if val_loss < best_valid_loss:
                 best_valid_loss = val_loss
-                self.save_model(self.path_mng.valid_model_path(self.name))
+                valid_model_path = self.path_mng.valid_model_path(self.name)
+                self.save_model(valid_model_path)
+                if self.run_logger is not None:
+                    self.run_logger.log_checkpoint('valid', valid_model_path)
             self.epoch_report(start_time, end_time, train_loss, val_loss)
             self.epoch += 1
-        self.save_model(self.path_mng.final_model_path(self.name))
+        final_model_path = self.path_mng.final_model_path(self.name)
+        self.save_model(final_model_path)
+        if self.run_logger is not None:
+            self.run_logger.log_checkpoint('final', final_model_path)
         print('Model saved.')
 
 
