@@ -1,0 +1,91 @@
+# Runtime-only cluster sync rules.
+#
+# This is an allow-list for code needed to run the POP909 cluster smoke and
+# later representative training. Datasets, notebooks, planning artifacts,
+# local notes, generated outputs, and checkpoints are intentionally excluded.
+
+# Root-level operational metadata
++ /.rsyncinclude-cluster-runtime
++ /.rsyncignore-cluster
++ /README.md
+
+# Cluster/helper scripts
++ /scripts/
++ /scripts/*.sh
+- /scripts/__pycache__/***
+- /scripts/*.pyc
+
+# Canonical POP909 training/runtime code
++ /base_model/
++ /base_model/*.py
++ /base_model/*.sh
++ /base_model/*.json
++ /base_model/README.md
++ /base_model/LICENSE
++ /base_model/.gitignore
+
+# Runtime subpackages used by train.py and evaluation helpers.
+# Exclude generated Python caches before broad recursive includes because rsync
+# uses the first matching filter rule.
+- /base_model/amc_dl/__pycache__/***
+- /base_model/amc_dl/**/__pycache__/***
+- /base_model/amc_dl/**/*.pyc
+- /base_model/experiments/__pycache__/***
+- /base_model/experiments/**/__pycache__/***
+- /base_model/experiments/**/*.pyc
+- /base_model/configs/__pycache__/***
+- /base_model/configs/**/__pycache__/***
+- /base_model/configs/**/*.pyc
++ /base_model/amc_dl/***
++ /base_model/experiments/***
++ /base_model/configs/***
+
+# Top-level decoder/encoder helpers used by some historical paths
+- /dl_modules/__pycache__/***
+- /dl_modules/**/__pycache__/***
+- /dl_modules/**/*.pyc
++ /dl_modules/***
+
+# Explicitly protect data, outputs, caches, notebooks, docs, and local work
+- /base_model/data/***
+- /base_model/result_*/***
+- /base_model/ExperimentoTeste/***
+- /base_model/demo/***
+- /base_model/__pycache__/***
+- /dataSet/***
+- /COMMUDataset/***
+- /commuTestNPZ/***
+- /midiDataTest/***
+- /latent_features/***
+- /features/***
+- /losses/***
+- /losses909ToPlot/***
+- /result_*/***
+- /result_experiments/***
+- /wandb/***
+- /NotebooksVAESymTex/***
+- /notebooksTPMaster/***
+- /draftCode/***
+- /_artefatos/***
+- /.planning/***
+- /.local-notes/***
+- /.git/***
+- /.ipynb_checkpoints/***
+- **/__pycache__/***
+- **/.ipynb_checkpoints/***
+- **/*.pyc
+- **/*.pt
+- **/*.pth
+- **/*.ckpt
+- **/*.wandb
+- **/*.ipynb
+- **/*.png
+- **/*.jpg
+- **/*.jpeg
+- **/*.mid
+- **/*.npz
+- **/*.npy
+- **/*.pkl
+
+# Everything else is outside the cluster runtime package.
+- *
