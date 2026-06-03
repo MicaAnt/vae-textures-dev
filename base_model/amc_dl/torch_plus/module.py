@@ -1,6 +1,7 @@
 import time
 import os
 import torch
+from canonical_checkpoint import save_training_state, load_training_state
 from torch import nn
 from .train_utils import epoch_time
 
@@ -181,11 +182,94 @@ class TrainingInterface:
             self.val_step += 1
         return epoch_loss_dic
 
-    def save_model(self, fn):
+    def _model_state_dict(self):
         if self.parallel:
-            torch.save(self.model.module.state_dict(), fn)
+            return self.model.module.state_dict()
+        return self.model.state_dict()
+
+    def _load_model_state_dict(self, state_dict):
+        cleaned = {}
+        for key, value in state_dict.items():
+            cleaned[key.replace('module.', '')] = value
+        if self.parallel:
+            self.model.module.load_state_dict(cleaned)
         else:
-            torch.save(self.model.state_dict(), fn)
+            self.model.load_state_dict(cleaned)
+
+    def save_model(self, fn):
+        torch.save(self._model_state_dict(), fn)
+
+    def _param_scheduler_steps(self):
+        return {
+            key: getattr(scheduler, '_step', 0)
+            for key, scheduler in self.param_scheduler.schedulers.items()
+        }
+
+    def _restore_param_scheduler_steps(self, steps):
+        for key, step in (steps or {}).items():
+            if key in self.param_scheduler.schedulers:
+                self.param_scheduler.schedulers[key]._step = int(step)
+
+    def _state_checkpoint_path(self, kind):
+        return os.path.join(self.model_path, f'{self.name}_{kind}_state.pt')
+
+    def _training_state_payload(self, best_valid_loss, config=None):
+        return {
+            'model_state_dict': self._model_state_dict(),
+            'optimizer_state_dict': self.opt_scheduler.optimizer.state_dict(),
+            'lr_scheduler_state_dict': self.opt_scheduler.scheduler.state_dict(),
+            'optimizer_scheduler_step': getattr(self.opt_scheduler, '_step', 0),
+            'param_scheduler_steps': self._param_scheduler_steps(),
+            'epoch': self.epoch,
+            'train_step': self.train_step,
+            'val_step': self.val_step,
+            'best_valid_loss': best_valid_loss,
+            'config': config or {},
+        }
+
+    def save_training_state_checkpoint(self, kind, best_valid_loss,
+                                       config=None):
+        state_path = self._state_checkpoint_path(kind)
+        save_training_state(
+            state_path,
+            self._training_state_payload(best_valid_loss, config=config),
+        )
+        print(f'[checkpoint] Saved training state ({kind}): {state_path}',
+              flush=True)
+        if self.run_logger is not None:
+            self.run_logger.log_checkpoint(kind, state_path)
+        return state_path
+
+    def load_training_state_checkpoint(self, path):
+        payload = load_training_state(path, map_location=self.device)
+        self._load_model_state_dict(payload['model_state_dict'])
+        self.opt_scheduler.optimizer.load_state_dict(
+            payload['optimizer_state_dict']
+        )
+        self.opt_scheduler.scheduler.load_state_dict(
+            payload['lr_scheduler_state_dict']
+        )
+        self.opt_scheduler._step = int(payload['optimizer_scheduler_step'])
+        self._restore_param_scheduler_steps(payload['param_scheduler_steps'])
+        self.epoch = int(payload['epoch'])
+        self.train_step = int(payload['train_step'])
+        self.val_step = int(payload['val_step'])
+        best_valid_loss = payload.get('best_valid_loss')
+        if best_valid_loss is None:
+            best_valid_loss = float('inf')
+        print(
+            f'[resume] Loaded training state from {path} | '
+            f'epoch={self.epoch} train_step={self.train_step} '
+            f'val_step={self.val_step} best_valid_loss={best_valid_loss}',
+            flush=True,
+        )
+        return {
+            'epoch': self.epoch,
+            'train_step': self.train_step,
+            'val_step': self.val_step,
+            'best_valid_loss': best_valid_loss,
+            'config': payload.get('config', {}),
+        }
 
     def epoch_report(self, start_time, end_time, train_loss, valid_loss):
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
@@ -199,19 +283,26 @@ class TrainingInterface:
         if self.run_logger is not None:
             self.run_logger.log_epoch_metrics(self.epoch + 1, train_loss, valid_loss, epoch_mins, epoch_secs)
 
-    def run(self, start_epoch=0, start_train_step=0, start_val_step=0):
+    def run(self, start_epoch=0, start_train_step=0, start_val_step=0,
+            best_valid_loss=float('inf'), max_epochs_this_job=None,
+            checkpoint_config=None):
         self.epoch = start_epoch
         self.train_step = start_train_step
         self.val_step = start_val_step
-        best_valid_loss = float('inf')
+        if best_valid_loss is None:
+            best_valid_loss = float('inf')
 
-        for i in range(self.n_epoch):
+        epochs_run_this_job = 0
+        while self.epoch < self.n_epoch:
+            if max_epochs_this_job is not None and                     epochs_run_this_job >= max_epochs_this_job:
+                break
             start_time = time.time()
             train_loss = self.train()['loss']
             val_loss = self.eval()['loss']
             end_time = time.time()
             epoch_model_path = self.path_mng.epoch_model_path(self.name)
             self.save_model(epoch_model_path)
+            next_epoch = self.epoch + 1
             if val_loss < best_valid_loss:
                 best_valid_loss = val_loss
                 valid_model_path = self.path_mng.valid_model_path(self.name)
@@ -219,11 +310,22 @@ class TrainingInterface:
                 if self.run_logger is not None:
                     self.run_logger.log_checkpoint('valid', valid_model_path)
             self.epoch_report(start_time, end_time, train_loss, val_loss)
-            self.epoch += 1
+            self.epoch = next_epoch
+            self.save_training_state_checkpoint(
+                'epoch-state', best_valid_loss, config=checkpoint_config
+            )
+            self.save_training_state_checkpoint(
+                'last-state', best_valid_loss, config=checkpoint_config
+            )
+            epochs_run_this_job += 1
+
         final_model_path = self.path_mng.final_model_path(self.name)
         self.save_model(final_model_path)
         if self.run_logger is not None:
             self.run_logger.log_checkpoint('final', final_model_path)
+        self.save_training_state_checkpoint(
+            'final-state', best_valid_loss, config=checkpoint_config
+        )
         print('Model saved.')
 
 

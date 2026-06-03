@@ -40,6 +40,11 @@ lr = env_float('VAE_LR', 1e-3)
 name = os.getenv('VAE_RUN_NAME', 'disvae-nozoth')
 limit_train_samples = env_int('VAE_LIMIT_TRAIN_SAMPLES', 0)
 limit_val_samples = env_int('VAE_LIMIT_VAL_SAMPLES', 0)
+resume_from = os.getenv('VAE_RESUME_FROM', '')
+run_epochs_this_job = env_int('VAE_RUN_EPOCHS_THIS_JOB', 0)
+full_checkpoint_policy = os.getenv(
+    'VAE_FULL_CHECKPOINT_POLICY', 'epoch-state,last-state,final-state'
+)
 wandb_enabled = env_flag('WANDB_ENABLED', False)
 
 parallel = parallel if torch.cuda.is_available() and \
@@ -123,6 +128,9 @@ wandb_config = {
     'contain_chord': True,
     'train_portion': 8,
     'writer_names': writer_names,
+    'resume_from': resume_from,
+    'run_epochs_this_job': run_epochs_this_job,
+    'full_checkpoint_policy': full_checkpoint_policy,
 }
 
 run_logger = WandbRunLogger.from_env(name, wandb_config, log_path_mng)
@@ -130,8 +138,25 @@ run_logger = WandbRunLogger.from_env(name, wandb_config, log_path_mng)
 training = TrainingVAE(device, model, parallel, log_path_mng,
                        data_loaders, summary_writers, optimizer_scheduler,
                        param_scheduler, n_epoch, run_logger=run_logger)
+resume_meta = None
+if resume_from:
+    resume_meta = training.load_training_state_checkpoint(resume_from)
+max_epochs_this_job = run_epochs_this_job if run_epochs_this_job > 0 else None
 try:
-    training.run()
+    if resume_meta is None:
+        training.run(
+            max_epochs_this_job=max_epochs_this_job,
+            checkpoint_config=wandb_config,
+        )
+    else:
+        training.run(
+            start_epoch=resume_meta['epoch'],
+            start_train_step=resume_meta['train_step'],
+            start_val_step=resume_meta['val_step'],
+            best_valid_loss=resume_meta['best_valid_loss'],
+            max_epochs_this_job=max_epochs_this_job,
+            checkpoint_config=wandb_config,
+        )
 finally:
     if run_logger is not None:
         run_logger.finish()

@@ -75,7 +75,10 @@ class WandbRunLogger:
             allow_val_change=True,
         )
 
-        checkpoint_policy = os.getenv('WANDB_CHECKPOINT_POLICY', 'valid,final')
+        checkpoint_policy = os.getenv(
+            'WANDB_CHECKPOINT_POLICY',
+            'valid,final,epoch-state,last-state,final-state',
+        )
         checkpoint_kinds = [kind.strip() for kind in checkpoint_policy.split(',') if kind.strip()]
         return cls(wandb, run, checkpoint_kinds)
 
@@ -114,6 +117,8 @@ class WandbRunLogger:
         aliases = [kind]
         if kind == 'valid':
             aliases.append('best')
+        if kind == 'last-state':
+            aliases.append('resume')
         self.run.log_artifact(artifact, aliases=aliases)
 
     def finish(self):
