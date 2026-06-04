@@ -171,6 +171,10 @@ Epoch: 02 | Time: 0m 5s
 
 This proves local epoch-boundary resume continuity before the cluster `sbatch` resume probe.
 
+## Human tutorial gate
+
+Before accepting the local exact-continuity proof, the user must follow `POP909 exact checkpoint resume tutorial.md`: read the relevant code, run the verifier manually, inspect the generated checkpoints, and record an `accept`, `rerun`, or `block` decision. Agent-run evidence alone is not acceptance.
+
 ## Exact continuity evidence
 
 A deterministic local A/B verifier now proves epoch-boundary resume continuity beyond the earlier "Epoch: 02" smoke evidence. The verifier runs three bounded CPU jobs with `WANDB_ENABLED=0`, `CUDA_VISIBLE_DEVICES=`, `VAE_SEED=3345`, `VAE_BATCH_SIZE=2`, `VAE_LIMIT_TRAIN_SAMPLES=4`, and `VAE_LIMIT_VAL_SAMPLES=2`:
