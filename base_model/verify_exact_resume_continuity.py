@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""Human-readable A/B proof for exact epoch-boundary resume.
+
+This script answers one narrow question: if we train two epochs continuously,
+do we reach the same final training state as training one epoch, saving a
+full-state checkpoint, resuming from it, and then training epoch two?
+
+It intentionally runs small CPU-only jobs with W&B disabled. That keeps the
+proof local, deterministic, and easy to inspect before any Slurm/cluster work.
+"""
+
 import argparse
 import os
 from pathlib import Path
@@ -15,11 +25,22 @@ BASE_DIR = Path(__file__).resolve().parent
 
 def run_train(run_name, n_epoch, seed, limit_train, limit_val, batch_size,
               run_epochs_this_job=0, resume_from=None):
+    """Run canonical train.py once with a controlled environment.
+
+    Every verifier leg still goes through `python -u train.py`. The environment
+    variables only bound the run size, force deterministic CPU execution, and
+    optionally point train.py at a full-state checkpoint.
+    """
     env = os.environ.copy()
     env.update({
+        # Force CPU for the exact local proof. GPU kernels may be nondeterministic
+        # even when checkpoint/resume state is restored correctly.
         'CUDA_VISIBLE_DEVICES': '',
+        # Keep Python hash iteration stable across subprocesses.
         'PYTHONHASHSEED': str(seed),
+        # W&B is irrelevant for this local equivalence proof and adds noise.
         'WANDB_ENABLED': '0',
+        # train.py reads these values to name the run and configure the proof.
         'VAE_RUN_NAME': run_name,
         'VAE_SEED': str(seed),
         'VAE_N_EPOCH': str(n_epoch),
@@ -29,10 +50,13 @@ def run_train(run_name, n_epoch, seed, limit_train, limit_val, batch_size,
         'VAE_FULL_CHECKPOINT_POLICY': 'epoch-state,last-state,final-state',
     })
     if run_epochs_this_job:
+        # Example: total target is 2 epochs, but this subprocess should run only
+        # one epoch and stop after saving full-state checkpoints.
         env['VAE_RUN_EPOCHS_THIS_JOB'] = str(run_epochs_this_job)
     else:
         env.pop('VAE_RUN_EPOCHS_THIS_JOB', None)
     if resume_from is not None:
+        # This is the only difference between a fresh leg and a resumed leg.
         env['VAE_RESUME_FROM'] = str(resume_from)
     else:
         env.pop('VAE_RESUME_FROM', None)
@@ -42,6 +66,7 @@ def run_train(run_name, n_epoch, seed, limit_train, limit_val, batch_size,
 
 
 def latest_checkpoint(run_name, kind):
+    """Find the newest checkpoint file for a run and checkpoint kind."""
     pattern = f'result_*/models/{run_name}_{kind}_state.pt'
     matches = list(BASE_DIR.glob(pattern))
     if not matches:
@@ -50,10 +75,17 @@ def latest_checkpoint(run_name, kind):
 
 
 def load_state(path):
+    """Load a full-state checkpoint for inspection/comparison."""
     return torch.load(path, map_location='cpu', weights_only=False)
 
 
 def compare_values(label, left, right, diffs):
+    """Recursively compare checkpoint values and record human-readable diffs.
+
+    Checkpoints contain nested dicts, tensors, NumPy arrays, Python tuples, and
+    scalars. A plain `==` would either fail or hide useful context, so this
+    function walks the structure and records where the first mismatch lives.
+    """
     if isinstance(left, torch.Tensor) or isinstance(right, torch.Tensor):
         if not isinstance(left, torch.Tensor) or not isinstance(right, torch.Tensor):
             diffs.append(f'{label}: tensor/type mismatch')
@@ -100,6 +132,12 @@ def compare_values(label, left, right, diffs):
 
 
 def compare_training_states(direct, resumed):
+    """Compare the two final checkpoints that should be identical.
+
+    We deliberately compare only state that defines training continuity. Run
+    names and config can differ between the direct and resumed legs, so `config`
+    is inspected by the tutorial but not used as a pass/fail equality key here.
+    """
     diffs = []
     required = {
         'model_state_dict',
@@ -136,11 +174,13 @@ def main():
     parser.add_argument('--batch-size', type=int, default=2)
     args = parser.parse_args()
 
+    # Unique names keep this proof from reusing old result directories.
     suffix = f'{int(time.time())}-{os.getpid()}'
     direct_name = f'exact-resume-direct-{suffix}'
     initial_name = f'exact-resume-initial-{suffix}'
     resumed_name = f'exact-resume-resumed-{suffix}'
 
+    # Path A: uninterrupted two-epoch training. This is the reference answer.
     run_train(
         direct_name, n_epoch=2, seed=args.seed,
         limit_train=args.limit_train_samples, limit_val=args.limit_val_samples,
@@ -148,6 +188,7 @@ def main():
     )
     direct_final = latest_checkpoint(direct_name, 'final-state')
 
+    # Path B, leg 1: train exactly one epoch and save the resume point.
     run_train(
         initial_name, n_epoch=1, seed=args.seed,
         limit_train=args.limit_train_samples, limit_val=args.limit_val_samples,
@@ -155,6 +196,7 @@ def main():
     )
     initial_last = latest_checkpoint(initial_name, 'last-state')
 
+    # Path B, leg 2: load the one-epoch checkpoint and run only epoch 2.
     run_train(
         resumed_name, n_epoch=2, seed=args.seed,
         limit_train=args.limit_train_samples, limit_val=args.limit_val_samples,
@@ -167,6 +209,7 @@ def main():
     resumed_state = load_state(resumed_final)
     diffs = compare_training_states(direct_state, resumed_state)
 
+    # Print these paths so the human tutorial can inspect the exact files.
     print('[verify] direct_final=', direct_final, sep='')
     print('[verify] initial_last=', initial_last, sep='')
     print('[verify] resumed_final=', resumed_final, sep='')
