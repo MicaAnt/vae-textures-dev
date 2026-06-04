@@ -199,6 +199,9 @@ class TrainingInterface:
     def save_model(self, fn):
         torch.save(self._model_state_dict(), fn)
 
+    # Local reproduction extension: the original training interface only saved
+    # model weights. These helpers add full-state checkpoint/resume support so a
+    # stopped run can continue training, not merely reload parameters.
     def _param_scheduler_steps(self):
         return {
             key: getattr(scheduler, '_step', 0)
@@ -214,6 +217,12 @@ class TrainingInterface:
         return os.path.join(self.model_path, f'{self.name}_{kind}_state.pt')
 
     def _training_state_payload(self, best_valid_loss, config=None):
+        """Build the local full-state checkpoint payload.
+
+        This is intentionally broader than the authors' model-only checkpoint:
+        it includes optimizer, schedulers, counters, best loss, config, and RNG
+        state so the next epoch resumes from the same training state.
+        """
         return {
             'model_state_dict': self._model_state_dict(),
             'optimizer_state_dict': self.opt_scheduler.optimizer.state_dict(),
@@ -230,6 +239,7 @@ class TrainingInterface:
 
     def save_training_state_checkpoint(self, kind, best_valid_loss,
                                        config=None):
+        """Save a resume-capable checkpoint beside the normal model weights."""
         state_path = self._state_checkpoint_path(kind)
         save_training_state(
             state_path,
@@ -242,6 +252,7 @@ class TrainingInterface:
         return state_path
 
     def load_training_state_checkpoint(self, path):
+        """Restore local full-state checkpoint data before continuing training."""
         payload = load_training_state(path, map_location=self.device)
         self._load_model_state_dict(payload['model_state_dict'])
         self.opt_scheduler.optimizer.load_state_dict(
