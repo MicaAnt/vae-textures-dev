@@ -1,5 +1,8 @@
 import os
+import random
 import warnings
+
+import numpy as np
 
 warnings.simplefilter('ignore', UserWarning)
 from model import DisentangleVAE
@@ -27,6 +30,18 @@ def env_float(name, default):
     return default if value is None else float(value)
 
 
+def set_global_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+
+seed = env_int('VAE_SEED', SEED)
+set_global_seed(seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 readme_fn = './train.py'
 batch_size = env_int('VAE_BATCH_SIZE', 128)
@@ -121,7 +136,7 @@ wandb_config = {
     'parallel': parallel,
     'limit_train_samples': limit_train_samples,
     'limit_val_samples': limit_val_samples,
-    'seed': SEED,
+    'seed': seed,
     'shift_low': -6,
     'shift_high': 5,
     'num_bar': 2,

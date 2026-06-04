@@ -50,8 +50,9 @@ A resume-capable checkpoint must contain these keys:
 - `val_step`
 - `best_valid_loss`
 - `config`
+- `rng_state`
 
-These are intentionally broader than model-only checkpoints. A model-only checkpoint can reproduce weights but cannot faithfully resume training because optimizer, scheduler, and step state would be reset.
+These are intentionally broader than model-only checkpoints. A model-only checkpoint can reproduce weights but cannot faithfully resume training because optimizer, scheduler, step state, and RNG state would be reset.
 
 ## Files created during training
 
@@ -142,7 +143,7 @@ The `last-state` payload was inspected and contained the required full-state key
 
 ```text
 best_valid_loss,config,epoch,lr_scheduler_state_dict,model_state_dict,
-optimizer_scheduler_step,optimizer_state_dict,param_scheduler_steps,train_step,val_step
+optimizer_scheduler_step,optimizer_state_dict,param_scheduler_steps,rng_state,train_step,val_step
 ```
 
 Payload values included:
@@ -169,6 +170,33 @@ Epoch: 02 | Time: 0m 5s
 ```
 
 This proves local epoch-boundary resume continuity before the cluster `sbatch` resume probe.
+
+## Exact continuity evidence
+
+A deterministic local A/B verifier now proves epoch-boundary resume continuity beyond the earlier "Epoch: 02" smoke evidence. The verifier runs three bounded CPU jobs with `WANDB_ENABLED=0`, `CUDA_VISIBLE_DEVICES=`, `VAE_SEED=3345`, `VAE_BATCH_SIZE=2`, `VAE_LIMIT_TRAIN_SAMPLES=4`, and `VAE_LIMIT_VAL_SAMPLES=2`:
+
+1. Two epochs uninterrupted.
+2. One epoch initial leg, saving `last-state`.
+3. Resume from that `last-state` and run epoch 2.
+
+Command:
+
+```bash
+python vae-textures-dev/base_model/verify_exact_resume_continuity.py
+```
+
+Observed 2026-06-04 evidence:
+
+```text
+[resume] Loaded training state from ... | epoch=1 train_step=2 val_step=1 best_valid_loss=9.850223541259766
+Epoch: 02 | Time: 0m 10s
+[verify] exact resume continuity PASSED
+[verify] resumed epoch 2 matches uninterrupted two-epoch training state
+```
+
+The comparison checks final full-state checkpoints for `epoch`, `train_step`, `val_step`, `best_valid_loss`, model tensors, optimizer state, learning-rate scheduler state, parameter-scheduler steps, and RNG state. This means the resumed epoch 2 is not a fake relabeling: under deterministic CPU conditions, it reaches the same final training state as an uninterrupted two-epoch run.
+
+Remaining caveat: exact equality on GPU can still depend on deterministic CUDA kernel behavior. The cluster `sbatch` probe should prove operational resume evidence, while this verifier proves technical state continuity in the deterministic local setting.
 
 ## Resume probe decision
 

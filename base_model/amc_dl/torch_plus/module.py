@@ -1,7 +1,7 @@
 import time
 import os
 import torch
-from canonical_checkpoint import save_training_state, load_training_state
+from canonical_checkpoint import save_training_state, load_training_state, capture_rng_state, restore_rng_state
 from torch import nn
 from .train_utils import epoch_time
 
@@ -225,6 +225,7 @@ class TrainingInterface:
             'val_step': self.val_step,
             'best_valid_loss': best_valid_loss,
             'config': config or {},
+            'rng_state': capture_rng_state(),
         }
 
     def save_training_state_checkpoint(self, kind, best_valid_loss,
@@ -254,6 +255,7 @@ class TrainingInterface:
         self.epoch = int(payload['epoch'])
         self.train_step = int(payload['train_step'])
         self.val_step = int(payload['val_step'])
+        restore_rng_state(payload['rng_state'])
         best_valid_loss = payload.get('best_valid_loss')
         if best_valid_loss is None:
             best_valid_loss = float('inf')

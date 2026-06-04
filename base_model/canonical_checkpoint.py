@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
+import random
 import tempfile
+import numpy as np
 import torch
 
 REQUIRED_TRAINING_STATE_KEYS = {
@@ -14,6 +16,14 @@ REQUIRED_TRAINING_STATE_KEYS = {
     'val_step',
     'best_valid_loss',
     'config',
+    'rng_state',
+}
+
+REQUIRED_RNG_STATE_KEYS = {
+    'python_random_state',
+    'numpy_random_state',
+    'torch_rng_state',
+    'torch_cuda_rng_state_all',
 }
 
 
@@ -57,3 +67,31 @@ def load_training_state(path, map_location='cpu'):
             + ', '.join(sorted(missing))
         )
     return payload
+
+
+
+def capture_rng_state():
+    return {
+        'python_random_state': random.getstate(),
+        'numpy_random_state': np.random.get_state(),
+        'torch_rng_state': torch.get_rng_state(),
+        'torch_cuda_rng_state_all': torch.cuda.get_rng_state_all()
+        if torch.cuda.is_available() else [],
+    }
+
+
+def restore_rng_state(rng_state):
+    if not isinstance(rng_state, dict):
+        raise ValueError('Training state checkpoint rng_state is not a dict')
+    missing = REQUIRED_RNG_STATE_KEYS.difference(rng_state.keys())
+    if missing:
+        raise ValueError(
+            'Training state checkpoint rng_state is missing required keys: '
+            + ', '.join(sorted(missing))
+        )
+
+    random.setstate(rng_state['python_random_state'])
+    np.random.set_state(rng_state['numpy_random_state'])
+    torch.set_rng_state(rng_state['torch_rng_state'].cpu())
+    if torch.cuda.is_available() and rng_state['torch_cuda_rng_state_all']:
+        torch.cuda.set_rng_state_all(rng_state['torch_cuda_rng_state_all'])
