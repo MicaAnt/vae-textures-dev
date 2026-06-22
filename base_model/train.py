@@ -76,6 +76,7 @@ model = DisentangleVAE(name, device, chd_encoder,
                        rhy_encoder, pt_decoder, chd_decoder)
 
 # data loaders
+# Use the env-overridable seed so the training split matches Phase 8 preflight evidence.
 data_loaders = \
     MusicDataLoaders.get_loaders(seed, bs_train=batch_size, bs_val=batch_size,
                                  portion=8, shift_low=-6, shift_high=5,
