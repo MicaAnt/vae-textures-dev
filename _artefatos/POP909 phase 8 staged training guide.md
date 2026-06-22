@@ -310,3 +310,37 @@ export WANDB_RESUME=must
 
 `VAE_RESUME_FROM` uses the path as seen inside the container (`/workspace/...`),
 not the host path (`/home/...`).
+
+## Phase 8 pre-flight/timing decision - 2026-06-22
+
+Pre-flight/timing decision: accept
+
+Evidence source: Slurm pre-flight job `336626`, submitted with `scripts/submit_pop909_phase8_session.sh preflight`.
+
+Pre-flight result:
+
+- Slurm state: `COMPLETED`, exit code `0:0`
+- `VAE_SEED=3345`
+- `VAE_BATCH_SIZE=128`
+- `VAE_LIMIT_TRAIN_SAMPLES=0`
+- `VAE_LIMIT_VAL_SAMPLES=0`
+- POP909 `.npz` count: `886`
+- Selected duple-meter files: `858`
+- Train dataset length: `702756`
+- Validation dataset length: `7718`
+- Train batch count: `5491`
+- Validation batch count: `61`
+- Pre-flight status: `ok`
+
+Timing decision:
+
+- Epoch 1 will be used as the default full-data timing calibration run.
+- Selected epoch-1 `SLURM_TIME=12:00:00`.
+- Rationale: Phase 7 four-sample timing is correctness/checkpoint evidence, not full-epoch timing evidence. The pre-flight shows a full epoch will cover `5491` train batches plus `61` validation batches, so epoch 1 should use a deliberately conservative time limit and later sessions should be adjusted only after human review of epoch-1 duration.
+
+W&B continuity strategy for epoch 1:
+
+- Generate a stable `WANDB_RUN_ID` before launch.
+- Use `WANDB_RESUME=allow` for the first session.
+- Reuse the same `WANDB_RUN_ID` with `WANDB_RESUME=must` for resumed sessions after an accepted checkpoint.
+
