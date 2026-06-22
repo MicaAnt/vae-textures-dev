@@ -77,7 +77,7 @@ model = DisentangleVAE(name, device, chd_encoder,
 
 # data loaders
 data_loaders = \
-    MusicDataLoaders.get_loaders(SEED, bs_train=batch_size, bs_val=batch_size,
+    MusicDataLoaders.get_loaders(seed, bs_train=batch_size, bs_val=batch_size,
                                  portion=8, shift_low=-6, shift_high=5,
                                  num_bar=2,
                                  contain_chord=True)
