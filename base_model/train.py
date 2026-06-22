@@ -146,6 +146,8 @@ wandb_config = {
     'resume_from': resume_from,
     'run_epochs_this_job': run_epochs_this_job,
     'full_checkpoint_policy': full_checkpoint_policy,
+    'wandb_run_id': os.getenv('WANDB_RUN_ID', ''),
+    'wandb_resume': os.getenv('WANDB_RESUME', ''),
 }
 
 run_logger = WandbRunLogger.from_env(name, wandb_config, log_path_mng)

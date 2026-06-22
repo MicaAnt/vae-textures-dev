@@ -49,6 +49,12 @@ class WandbRunLogger:
             init_kwargs['entity'] = entity
         if mode:
             init_kwargs['mode'] = mode
+        run_id = os.getenv('WANDB_RUN_ID')
+        if run_id:
+            init_kwargs['id'] = run_id
+        resume = os.getenv('WANDB_RESUME')
+        if resume:
+            init_kwargs['resume'] = resume
         group = os.getenv('WANDB_GROUP')
         if group:
             init_kwargs['group'] = group
