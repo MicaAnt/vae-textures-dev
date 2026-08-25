@@ -197,7 +197,17 @@ class TrainingInterface:
             self.model.load_state_dict(cleaned)
 
     def save_model(self, fn):
+        start_time = time.time()
         torch.save(self._model_state_dict(), fn)
+        duration_seconds = time.time() - start_time
+        print(
+            f'[checkpoint] Saved model weights in {duration_seconds:.3f}s: {fn}',
+            flush=True,
+        )
+        if self.run_logger is not None:
+            self.run_logger.log_checkpoint_timing(
+                'model-weights', duration_seconds, fn
+            )
 
     # Local reproduction extension: the original training interface only saved
     # model weights. These helpers add full-state checkpoint/resume support so a
@@ -241,13 +251,21 @@ class TrainingInterface:
                                        config=None):
         """Save a resume-capable checkpoint beside the normal model weights."""
         state_path = self._state_checkpoint_path(kind)
+        start_time = time.time()
         save_training_state(
             state_path,
             self._training_state_payload(best_valid_loss, config=config),
         )
-        print(f'[checkpoint] Saved training state ({kind}): {state_path}',
-              flush=True)
+        duration_seconds = time.time() - start_time
+        print(
+            f'[checkpoint] Saved training state ({kind}) '
+            f'in {duration_seconds:.3f}s: {state_path}',
+            flush=True,
+        )
         if self.run_logger is not None:
+            self.run_logger.log_checkpoint_timing(
+                kind, duration_seconds, state_path
+            )
             self.run_logger.log_checkpoint(kind, state_path)
         return state_path
 
@@ -285,16 +303,22 @@ class TrainingInterface:
         }
 
     def epoch_report(self, start_time, end_time, train_loss, valid_loss):
+        duration_seconds = end_time - start_time
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
         print(f'Epoch: {self.epoch + 1:02} | '
               f'Time: {epoch_mins}m {epoch_secs}s',
+              flush=True)
+        print(f'	Epoch train/eval seconds: {duration_seconds:.3f}',
               flush=True)
         print(
             f'\tTrain Loss: {train_loss:.3f}', flush=True)
         print(
             f'\t Valid. Loss: {valid_loss:.3f}', flush=True)
         if self.run_logger is not None:
-            self.run_logger.log_epoch_metrics(self.epoch + 1, train_loss, valid_loss, epoch_mins, epoch_secs)
+            self.run_logger.log_epoch_metrics(
+                self.epoch + 1, train_loss, valid_loss, epoch_mins, epoch_secs,
+                duration_seconds=duration_seconds,
+            )
 
     def run(self, start_epoch=0, start_train_step=0, start_val_step=0,
             best_valid_loss=float('inf'), max_epochs_this_job=None,

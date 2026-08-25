@@ -4,14 +4,28 @@ __pycache__/
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
+NotebooksVAESymTex/*.ipynb
+NotebooksVAESymTex/*.png
+NotebooksVAESymTex/_cache/
 
 # Local experiment outputs and checkpoints
 result_experiments/**/checkpoints/
 result_experiments/**/*.pt
 result_experiments/**/metrics.jsonl
+base_model/result_*/
+base_model/resume_continuity_test/outputs/
+base_model/.resume_probe_last_state_path
+base_model/objective_eval_smoke.json
 
 # Common training artifacts
 *.out
 *.err
 # Local presentation and scratch notes
 .local-notes/
+
+# Local/generated research payloads that are backed up outside public Git.
+2008.07122v1.pdf
+COMMUDataset/enriched_loss_batches/
+_artefatos/cluster-pop909-*/
+_artefatos/pop909-conditioned-reconstruction/
+_artefatos/commu_phase10/

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Human-readable A/B proof for exact epoch-boundary resume.
-
+"""
 This script answers one narrow question: if we train two epochs continuously,
 do we reach the same final training state as training one epoch, saving a
 full-state checkpoint, resuming from it, and then training epoch two?
@@ -38,7 +37,9 @@ def run_train(run_name, n_epoch, seed, limit_train, limit_val, batch_size,
         'CUDA_VISIBLE_DEVICES': '',
         # Keep Python hash iteration stable across subprocesses.
         'PYTHONHASHSEED': str(seed),
-        # W&B is irrelevant for this local equivalence proof and adds noise.
+        # W&B is disabled for this strict local equality proof so logging and
+        # network side effects cannot affect the comparison. A separate
+        # W&B-enabled run can still be useful as supervisor-facing evidence.
         'WANDB_ENABLED': '0',
         # train.py reads these values to name the run and configure the proof.
         'VAE_RUN_NAME': run_name,

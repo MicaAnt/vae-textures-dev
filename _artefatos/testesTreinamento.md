@@ -1,4 +1,26 @@
 
+# Prompt de assistente de programação
+
+> Você é um assistente de programação especializado em desenvolvimento Python, com foco em modelos VAE (Variational Autoencoder). Sua missão é ajudar o usuário de forma objetiva e pedagógica, oferecendo apenas soluções que você conhece. Se não souber responder, diga claramente que não sabe. Se precisar de mais informações para entender o problema, solicite-as de forma direta.
+>
+> Diretrizes:
+>
+> Seja objetivo: forneça a informação necessária para resolver o problema, sem rodeios ou múltiplas alternativas que não levam a lugar nenhum.
+>
+> Seja pedagógico: ao explicar a implementação de uma solução, quebre o processo em etapas claras e justifique as escolhas quando relevante.
+>
+> Contexto principal: desenvolvimento de modelos VAE em Python, incluindo tarefas como:
+>
+> Executar e treinar o modelo.
+>
+> Interagir com GitHub (ex.: clonar repositórios, versionar código, fazer push/pull).
+>
+> Interagir com codex (se referir a Codex da OpenAI, ou a documentação/código fonte – peça esclarecimento se a intenção não estiver clara).
+>
+> Ao responder, assuma que o usuário tem conhecimento básico de Python e machine learning, mas explique conceitos específicos quando necessário. Mantenha um tom profissional e focado.
+
+# 25 de Março de 2026
+
 # 19 de Março de 2026
 
 ## Primeiro
@@ -19,7 +41,7 @@ python base_model/experiments/runner.py --config base_model/configs/experimento1
 ```
 python -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available())
 
-``` 
+```
 
 -> Você tem que liberar espaço no Mac pra fazer isso com alguma tranquilidade...
 
@@ -28,7 +50,7 @@ os workspaces - estão no HD e no computador
 
 
 
-# 18 de Março de 2026 
+# 18 de Março de 2026
 
 ## Enviando arquivos
 
@@ -50,7 +72,7 @@ rsync -avz --delete --progress -e 'ssh -J micael.antunes@139.124.22.4' ./vae-tun
 update nos configs
 
 ```
-rsync -avz --delete --progress -e 'ssh -J micael.antunes@139.124.22.4' ./vae-tuning-texutres/base_model/configs micael.antunes@sms:/home/micael.antunes/fidleProject/base_model/ 
+rsync -avz --delete --progress -e 'ssh -J micael.antunes@139.124.22.4' ./vae-tuning-texutres/base_model/configs micael.antunes@sms:/home/micael.antunes/fidleProject/base_model/
 ```
 -> tem que colocar na pasta de onde vai ser comparado.
 
@@ -73,7 +95,7 @@ python base_model/experiments/runner.py --config base_model/configs/experimento1
 
 
 
-## Teste 5 
+## Teste 5
 
 **No terminal**
 
@@ -129,7 +151,7 @@ pretrained_strict: true
 
 ```
 
-**Saída** 
+**Saída**
 
 me chamou a atenção os valores de perda...
 
@@ -157,7 +179,7 @@ include_optimizer_state: true
 
 ```
 
-**Saída** 
+**Saída**
 
 Ok!
 
@@ -165,15 +187,15 @@ Ok!
 
 Começando a incluir códigos que permitam:
 -> Incluir .pt files para fine tuning.
--> Começar o treino em batches específicos. 
+-> Começar o treino em batches específicos.
 
 ## 12:45 - Update Git
 
 `stable version of training runner to start new developments`
 
-## Teste 2 
+## Teste 2
 
-### Código 
+### Código
 
 **No terminal**
 
@@ -191,14 +213,14 @@ output_dir: result_experiments/commu_smoke_minimal_18032026-1158
 include_optimizer_state: true
 ```
 
-## Saída 
+## Saída
 
 No bugs...
 
 
 ## Teste 1
 
-### Código 
+### Código
 
 **No terminal**
 
@@ -215,7 +237,7 @@ output_dir: result_experiments/commu_smoke_minimal_18032026-1158
 include_optimizer_state: true
 ```
 
-## Saída 
+## Saída
 
 No bugs...
 
@@ -277,7 +299,7 @@ RuntimeError: [enforce fail at inline_container.cc:603] . unexpected pos 1400597
 - runner.py
 - commu_smoke_minimal.yaml
 
-### Código 
+### Código
 
 **No terminal**
 
@@ -298,9 +320,9 @@ Rodou tudo certo, com saida em `result_experiments`
 
 ## 14:04 - Update no Github
 
-## Teste 3 - 14:50 
+## Teste 3 - 14:50
 
-### Código 
+### Código
 
 **No terminal**
 
@@ -316,6 +338,6 @@ name: commu-smoke-minimal_17032026_1449
 include_optimizer_state: true
 ```
 
-## Saída 
+## Saída
 
 -> Aparentemente ele não salvou a saída! :/

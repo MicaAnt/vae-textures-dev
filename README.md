@@ -227,3 +227,18 @@ Original model and paper:
 Checkpoint/tutorial repository:
 
 - https://github.com/ZZWaang/icm-deep-music-generation
+
+## COMMU Phase 10 Pipeline Readiness
+
+Phase 10 adds a compact, reusable COMMU readiness surface around the existing data treatment code. The practical boundary is `MIDI -> NPZ -> modelo`: raw COMMU MIDI plus metadata are converted through `utilProcessing.GenDataSet`, audited as NPZ data, and smoke-tested through model/loss compatibility.
+
+Clean entrypoint examples:
+
+```bash
+python3 -m commu_pipeline.preprocess --midi-dir midiDataTest --metadata-csv midiDataTest/commu_meta.csv --output-dir _artefatos/commu_phase10/regenerated_npz --track-id commu00001
+python3 -m commu_pipeline.harmony_trace --metadata-csv COMMUDataset/CommuVAEDataset.csv --npz COMMUDataset/npzFiles/commu00001.npz --track-id commu00001 --output-dir _artefatos/commu_phase10
+python3 -m commu_pipeline.audit_dataset --npz-dir COMMUDataset/npzFiles --metadata-csv COMMUDataset/CommuVAEDataset.csv --output-dir _artefatos/commu_phase10 --max-files 200 --sample-per-role 2
+python3 -m commu_pipeline.forward_loss_probe --input-dir COMMUDataset/npzFiles --max-files 3 --device cpu --checkpoint model_param/polydis-v1.pt --output _artefatos/commu_phase10/commu_forward_loss_probe.json
+```
+
+Review artifacts live in `_artefatos/commu_phase10`, with the human-facing notebook at `NotebooksVAESymTex/COMMU_Phase10_Pipeline_Readiness.ipynb`. Phase 10 is a readiness and organization phase; benchmark comparison belongs to Phase 11.

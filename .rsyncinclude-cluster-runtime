@@ -15,6 +15,17 @@
 - /scripts/__pycache__/***
 - /scripts/*.pyc
 
+# Phase 9 conditioned reconstruction validation runtime
++ /configs/
++ /configs/pop909_conditioned_reconstruction_cluster_smoke.json
++ /configs/pop909_conditioned_reconstruction_cluster_full_validation.json
++ /pop909_conditioned_reconstruction.py
++ /pop909_conditioned_reconstruction_assets.py
++ /pop909_conditioned_reconstruction_review.py
++ /interface.py
++ /model_param/
++ /model_param/polydis-v1.pt
+
 # Canonical POP909 training/runtime code
 + /base_model/
 + /base_model/*.py
@@ -23,6 +34,10 @@
 + /base_model/README.md
 + /base_model/LICENSE
 + /base_model/.gitignore
++ /base_model/resume_continuity_test/
++ /base_model/resume_continuity_test/*.py
++ /base_model/resume_continuity_test/README.md
+- /base_model/resume_continuity_test/outputs/***
 
 # Runtime subpackages used by train.py and evaluation helpers.
 # Exclude generated Python caches before broad recursive includes because rsync

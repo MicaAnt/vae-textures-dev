@@ -528,3 +528,204 @@ export VAE_BATCH_SIZE=128
 export VAE_SEED=3345
 ```
 
+## Epoch 4 validation
+
+Epoch 4 decision: accept
+
+Evidence source: Slurm training job `338855`, downloaded locally to `_artefatos/cluster-pop909-phase8-338855/`.
+
+Run identity:
+
+- `VAE_RUN_NAME=pop909-phase8-representative-20260624-191423`
+- `WANDB_RUN_ID=phase8-1782136259-24729`
+- `WANDB_RESUME=must`
+- W&B URL: `https://wandb.ai/micael-antunes-lis-cnrs/pop909-reproduction/runs/phase8-1782136259-24729`
+
+Configuration evidence:
+
+- Slurm state: `COMPLETED`, exit code `0:0`
+- Slurm elapsed: `05:42:02` against `12:00:00` time limit
+- Epoch train/eval seconds: `20439.444` (`5h40m39s`)
+- `VAE_SEED=3345`
+- `VAE_BATCH_SIZE=128`
+- `VAE_N_EPOCH=6`
+- `VAE_RUN_EPOCHS_THIS_JOB=1`
+- `VAE_RESUME_FROM=/workspace/base_model/result_2026-06-24_084446/models/pop909-phase8-representative-20260624-084349_last-state_state.pt`
+- `VAE_LIMIT_TRAIN_SAMPLES=0`
+- `VAE_LIMIT_VAL_SAMPLES=0`
+- POP909 `.npz` count: `886`
+- Selected duple-meter files: `858`
+- Train dataset length: `702756`
+- Validation dataset length: `7718`
+
+Loss evidence:
+
+- Epoch train loss sum: `2276.080`
+- Epoch validation loss sum: `37.175`
+- Previous best validation loss restored from epoch 3: `37.30945956707001`
+- Approximate train loss per batch: `2276.080 / 5491 = 0.415`
+- Approximate validation loss per batch: `37.175 / 61 = 0.609`
+- Validation audit note: epoch 4 shows a plateau rather than clear deterioration. `val/loss` mean improved only slightly from epoch 3 (`0.6116` to `0.6094`), `val/recon_loss` mean was essentially flat/slightly higher (`0.4709` to `0.4728`), and `val/kl_rhy` remained active but stable (`0.8230` to `0.8327`). Continue to epoch 5 with stricter validation-curve monitoring.
+
+Checkpoint evidence:
+
+- Downloaded model/result directory: `_artefatos/cluster-pop909-phase8-338855/results/result_2026-06-24_191514/`
+- Downloaded checkpoint files include `epoch`, `valid`, `epoch-state`, `last-state`, `final`, and `final-state`.
+- W&B resumed the existing run and synced `5` W&B files and `10` artifact files.
+
+Accepted resume checkpoint for epoch 5:
+
+```bash
+export VAE_RESUME_FROM=/workspace/base_model/result_2026-06-24_191514/models/pop909-phase8-representative-20260624-191423_last-state_state.pt
+export WANDB_RUN_ID=phase8-1782136259-24729
+export WANDB_RESUME=must
+```
+
+Next session should keep:
+
+```bash
+export VAE_N_EPOCH=6
+export VAE_RUN_EPOCHS_THIS_JOB=1
+export VAE_BATCH_SIZE=128
+export VAE_SEED=3345
+```
+
+
+## Epoch 5 validation
+
+Epoch 5 decision: accept
+
+Evidence source: Slurm training job `340811`, downloaded locally to `_artefatos/cluster-pop909-phase8-340811/`.
+
+Run identity:
+
+- `VAE_RUN_NAME=pop909-phase8-representative-20260625-113904`
+- `WANDB_RUN_ID=phase8-1782136259-24729`
+- `WANDB_RESUME=must`
+- W&B URL: `https://wandb.ai/micael-antunes-lis-cnrs/pop909-reproduction/runs/phase8-1782136259-24729`
+
+Configuration evidence:
+
+- Slurm state: `COMPLETED`, exit code `0:0`
+- Slurm elapsed: `05:59:02` against `12:00:00` time limit
+- Epoch train/eval seconds: `21462.660` (`5h57m43s`)
+- `VAE_SEED=3345`
+- `VAE_BATCH_SIZE=128`
+- `VAE_N_EPOCH=6`
+- `VAE_RUN_EPOCHS_THIS_JOB=1`
+- `VAE_RESUME_FROM=/workspace/base_model/result_2026-06-24_191514/models/pop909-phase8-representative-20260624-191423_last-state_state.pt`
+- `VAE_LIMIT_TRAIN_SAMPLES=0`
+- `VAE_LIMIT_VAL_SAMPLES=0`
+- POP909 `.npz` count: `886`
+- Selected duple-meter files: `858`
+- Train dataset length: `702756`
+- Validation dataset length: `7718`
+
+Loss evidence:
+
+- Epoch train loss sum: `2002.946`
+- Epoch validation loss sum: `37.572`
+- Previous best validation loss restored from epoch 4: `37.17481905221939`
+- Approximate train loss per batch: `2002.946 / 5491 = 0.365`
+- Approximate validation loss per batch: `37.572 / 61 = 0.616`
+- Validation audit note: epoch 5 shows mild validation plateau/regression rather than a breakdown. Mean `val/loss` worsened slightly from `0.609423` to `0.615938`, mean `val/recon_loss` worsened from `0.472804` to `0.483319`, mean `val/kl_rhy` stayed stable in-band from `0.832675` to `0.840709`, and mean `val/chord_loss` improved from `0.018384` to `0.014981`. The stricter pause condition was not met.
+
+Checkpoint evidence:
+
+- Downloaded model/result directory: `_artefatos/cluster-pop909-phase8-340811/results/result_2026-06-25_114018/`
+- Downloaded checkpoint files include `epoch`, `epoch-state`, `last-state`, `final`, and `final-state`.
+- W&B resumed the existing run and synced `5` W&B files and `8` artifact files.
+- Detailed audit: `_artefatos/POP909 phase 8 epoch 5 validation audit.md`
+
+Accepted resume checkpoint for epoch 6:
+
+```bash
+export VAE_RESUME_FROM=/workspace/base_model/result_2026-06-25_114018/models/pop909-phase8-representative-20260625-113904_last-state_state.pt
+export WANDB_RUN_ID=phase8-1782136259-24729
+export WANDB_RESUME=must
+```
+
+Final staged epoch should keep:
+
+```bash
+export VAE_N_EPOCH=6
+export VAE_RUN_EPOCHS_THIS_JOB=1
+export VAE_BATCH_SIZE=128
+export VAE_SEED=3345
+```
+
+## Epoch 6 validation
+
+Epoch 6 decision: accept
+
+Recommendation: accept epoch 6 as protocol-completion checkpoint, with validation-regression caveat
+
+Human decision: accepted by user on 2026-06-26.
+
+Evidence source: Slurm training job `341594`, downloaded locally to `_artefatos/cluster-pop909-phase8-341594/`.
+
+Operational evidence:
+
+- Slurm state: `COMPLETED`
+- Exit code: `0:0`
+- Elapsed: `06:28:00` against `12:00:00`
+- GPU allocation: `gres/gpu:a40-48=1`
+- `WANDB_RUN_ID=phase8-1782136259-24729`
+- `WANDB_RESUME=must`
+- W&B URL: `https://wandb.ai/micael-antunes-lis-cnrs/pop909-reproduction/runs/phase8-1782136259-24729`
+
+Resume evidence:
+
+```text
+[resume] Loaded training state from /workspace/base_model/result_2026-06-25_114018/models/pop909-phase8-representative-20260625-113904_last-state_state.pt | epoch=5 train_step=27455 val_step=305 best_valid_loss=37.17481905221939
+```
+
+Loss evidence:
+
+- Epoch train/eval seconds: `23196.110` (`6h26m36s`)
+- Epoch train loss sum: `1844.998`
+- Epoch validation loss sum: `38.082`
+- Previous epoch validation loss: `37.572`
+- Best restored validation loss: `37.17481905221939`
+- Approximate train loss per batch: `1844.998 / 5491 = 0.336`
+- Approximate validation loss per batch: `38.082 / 61 = 0.624`
+- Validation audit note: epoch 6 shows a small but real monotonic validation regression after the epoch 4 best point (`37.175 -> 37.572 -> 38.082`). Training loss continued improving, so this may reflect late-epoch overfitting/generalization drift rather than runtime failure. W&B summary `val/*` values are last-batch metrics, not epoch means; epoch 6 TensorBoard validation tags are missing locally, so the validation trend rests on stdout/W&B epoch metrics. Treat `val/chord_loss` improvement as a small absolute change, not decisive evidence.
+
+Checkpoint evidence:
+
+- Downloaded model/result directory: `_artefatos/cluster-pop909-phase8-341594/results/result_2026-06-25_212850/`
+- Downloaded checkpoint files include `epoch`, `epoch-state`, `last-state`, `final`, and `final-state`.
+- W&B resumed the existing run and synced `5` W&B files and `8` artifact files.
+- Detailed audit: `_artefatos/POP909 phase 8 epoch 6 validation audit.md`
+
+Recommended final full-state checkpoint for Phase 9:
+
+```text
+/workspace/vae-textures-dev/_artefatos/cluster-pop909-phase8-341594/results/result_2026-06-25_212850/models/pop909-phase8-representative-20260625-212752_final-state_state.pt
+```
+
+Recommended final model-weights checkpoint for Phase 9 diagnostics:
+
+```text
+/workspace/vae-textures-dev/_artefatos/cluster-pop909-phase8-341594/results/result_2026-06-25_212850/models/pop909-phase8-representative-20260625-212752_final.pt
+```
+
+
+## Final Phase 8 decision
+
+Phase 8 decision: accept
+
+Human decision: accepted by user on 2026-06-26.
+
+Accepted scope:
+
+- Representative POP909 training completed through the planned 6 staged epochs.
+- All staged jobs completed with Slurm exit code `0:0`.
+- Full POP909 data settings were preserved throughout (`VAE_LIMIT_TRAIN_SAMPLES=0`, `VAE_LIMIT_VAL_SAMPLES=0`).
+- W&B continuity preserved run id `phase8-1782136259-24729`.
+- Final protocol-completion checkpoint is available for Phase 9.
+- Epoch 4 best-validation checkpoint is retained as a diagnostic comparator for Phase 9.
+
+Caveat:
+
+Phase 8 acceptance is operational/protocol acceptance, not scientific equivalence to the authors. Validation loss worsened monotonically after epoch 4 (`37.175 -> 37.572 -> 38.082`), so Phase 9 must compare authors, our epoch 4, and our epoch 6 outputs before making the final reproduction claim.

@@ -142,4 +142,11 @@ def restore_rng_state(rng_state):
     np.random.set_state(rng_state['numpy_random_state'])
     torch.set_rng_state(rng_state['torch_rng_state'].cpu())
     if torch.cuda.is_available() and rng_state['torch_cuda_rng_state_all']:
-        torch.cuda.set_rng_state_all(rng_state['torch_cuda_rng_state_all'])
+        # torch.load(..., map_location='cuda') may place saved CUDA RNG states
+        # on the GPU. torch.cuda.set_rng_state_all expects CPU ByteTensors, so
+        # normalize them before restoring a checkpoint on the cluster.
+        cuda_rng_states = [
+            state.detach().cpu() if isinstance(state, torch.Tensor) else state
+            for state in rng_state['torch_cuda_rng_state_all']
+        ]
+        torch.cuda.set_rng_state_all(cuda_rng_states)

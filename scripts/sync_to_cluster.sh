@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve paths relative to this script instead of trusting the caller current directory.
+# That keeps the sync target stable even when the script is launched elsewhere.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 EXCLUDE_FILE="${RSYNC_EXCLUDE_FILE:-${PROJECT_ROOT}/.rsyncignore-cluster}"
+
+# Cluster connection defaults. Each value can be overridden from the terminal,
+# for example: CLUSTER_ALIAS=other scripts/sync_to_cluster.sh dry-run
 CLUSTER_USER="${CLUSTER_USER:-micael.antunes}"
 CLUSTER_LOGIN_HOST="${CLUSTER_LOGIN_HOST:-139.124.22.4}"
 CLUSTER_ALIAS="${CLUSTER_ALIAS:-sms}"
@@ -15,6 +20,9 @@ if [[ ! -f "${EXCLUDE_FILE}" ]]; then
   exit 2
 fi
 
+
+# The default mode is intentionally dry-run. In dry-run, rsync still computes
+# the delete plan, but --dry-run prevents it from applying changes.
 case "${MODE}" in
   dry-run)
     DELETE_FLAG="--delete"
@@ -43,6 +51,9 @@ cat <<MSG
 [sync] Excluded paths are not deleted on the cluster unless you add --delete-excluded (this script does not).
 MSG
 
+
+# Build rsync as a Bash array so paths and SSH options stay as separate
+# arguments. This is safer than assembling one long command string.
 RSYNC_CMD=(
   rsync -avz --progress --human-readable --itemize-changes
   -e "ssh -J ${CLUSTER_USER}@${CLUSTER_LOGIN_HOST}"
@@ -58,6 +69,9 @@ fi
 
 RSYNC_CMD+=("${PROJECT_ROOT}/" "${CLUSTER_USER}@${CLUSTER_ALIAS}:${REMOTE_DIR}")
 
+
+# Print the exact command with shell escaping before running it. This is the
+# first thing to inspect during a dry-run.
 printf '[sync] Command: '
 printf '%q ' "${RSYNC_CMD[@]}"
 printf '\n'

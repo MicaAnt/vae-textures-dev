@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Defaults for the Slurm container shell. These are environment-overridable so
+# the same script can be reused for a different image, partition, or GPU count.
 IMAGE_PATH="${CLUSTER_IMAGE:-/home/${USER}/devcontainer_images/dcli_fidle_tuto.squashfs}"
 WORKSPACE_HOST_PATH="${WORKSPACE_HOST_PATH:-/home/${USER}/vae-textures-dev}"
 PARTITION="${SLURM_PARTITION:-gpu}"
@@ -17,6 +19,11 @@ cat <<MSG
 [cluster] cpus-per-task: ${CPUS}
 MSG
 
+# Request an interactive Slurm allocation and start a shell inside the image.
+# The host repository is mounted at /workspace, which is why later commands use
+# /workspace/base_model. The NVIDIA driver libraries come from the cluster host;
+# mounting them into /nvidia and updating LD_LIBRARY_PATH is the bridge that lets
+# CUDA-enabled PyTorch talk to the real GPU driver.
 srun \
   --partition="${PARTITION}" \
   --container-image="${IMAGE_PATH}" \

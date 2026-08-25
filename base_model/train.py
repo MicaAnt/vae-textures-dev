@@ -55,6 +55,7 @@ lr = env_float('VAE_LR', 1e-3)
 name = os.getenv('VAE_RUN_NAME', 'disvae-nozoth')
 limit_train_samples = env_int('VAE_LIMIT_TRAIN_SAMPLES', 0)
 limit_val_samples = env_int('VAE_LIMIT_VAL_SAMPLES', 0)
+limit_train_shuffle = env_flag('VAE_LIMIT_TRAIN_SHUFFLE', False)
 resume_from = os.getenv('VAE_RESUME_FROM', '')
 run_epochs_this_job = env_int('VAE_RUN_EPOCHS_THIS_JOB', 0)
 full_checkpoint_policy = os.getenv(
@@ -92,7 +93,7 @@ if limit_train_samples > 0:
                                          len(train_dataset)))))
     data_loaders.train_loader = DataLoader(train_subset,
                                            batch_size=batch_size,
-                                           shuffle=False)
+                                           shuffle=limit_train_shuffle)
 
 if limit_val_samples > 0:
     val_dataset = data_loaders.val_loader.dataset
@@ -137,6 +138,7 @@ wandb_config = {
     'parallel': parallel,
     'limit_train_samples': limit_train_samples,
     'limit_val_samples': limit_val_samples,
+    'limit_train_shuffle': limit_train_shuffle,
     'seed': seed,
     'shift_low': -6,
     'shift_high': 5,

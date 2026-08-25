@@ -1,0 +1,46 @@
+{
+  "run_id": "smoke-local",
+  "run_role": "smoke",
+  "split": "validation",
+  "sample_count": 2,
+  "selection_seed": 3345,
+  "ordering_rule": "canonical_validation_loader_order_then_first_n",
+  "fallback_used": true,
+  "fallback_reason": "technical smoke run on tiny fixed validation subset",
+  "full_split_target": false,
+  "output_root": "_artefatos/pop909-conditioned-reconstruction",
+  "device": "cpu",
+  "overwrite": true,
+  "loader": {
+    "batch_size": 1,
+    "portion": 8,
+    "shift_low": -6,
+    "shift_high": 5,
+    "num_bar": 2,
+    "contain_chord": true,
+    "seed": 3345,
+    "data_path": "base_model/data/POP09-PIANOROLL-4-bin-quantization",
+    "index_file_path": "base_model/data/index.xlsx"
+  },
+  "checkpoints": {
+    "authors": {
+      "role": "authors_reference",
+      "path": "model_param/polydis-v1.pt",
+      "provenance_note": "Authors' released/public checkpoint; exact equivalence to paper final/best checkpoint remains qualified.",
+      "payload_format": "authors_released_state_dict"
+    },
+    "ours": {
+      "role": "ours_dry_run",
+      "path": "_artefatos/cluster-pop909-phase8-340811/results/result_2026-06-25_114018/models/pop909-phase8-representative-20260625-113904_last-state_state.pt",
+      "provenance_note": "Accepted Phase 8 epoch 5 checkpoint for technical smoke/dry-run only; not official final evidence.",
+      "wandb_run_id": "phase8-1782136259-24729",
+      "wandb_group": "pop909-phase8-representative-20260622-155059",
+      "accepted": false,
+      "payload_format": "training_state"
+    }
+  },
+  "asset_generation": {
+    "midi": false,
+    "audio": false
+  }
+}

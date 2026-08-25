@@ -93,14 +93,25 @@ class WandbRunLogger:
         payload[f'{task}/step'] = step
         self.run.log(payload)
 
-    def log_epoch_metrics(self, epoch, train_loss, valid_loss, epoch_mins, epoch_secs):
-        duration_seconds = (epoch_mins * 60) + epoch_secs
+    def log_epoch_metrics(self, epoch, train_loss, valid_loss, epoch_mins, epoch_secs, duration_seconds=None):
+        if duration_seconds is None:
+            duration_seconds = (epoch_mins * 60) + epoch_secs
         self.run.log(
             {
                 'epoch': epoch,
                 'epoch/train_loss': train_loss,
                 'epoch/valid_loss': valid_loss,
                 'epoch/duration_seconds': duration_seconds,
+            }
+        )
+
+    def log_checkpoint_timing(self, kind, duration_seconds, path):
+        self.run.log(
+            {
+                'checkpoint/kind': kind,
+                f'checkpoint/{kind}_save_seconds': duration_seconds,
+                'checkpoint/last_save_seconds': duration_seconds,
+                'checkpoint/path': str(path),
             }
         )
 

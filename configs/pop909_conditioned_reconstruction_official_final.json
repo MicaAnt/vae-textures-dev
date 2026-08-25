@@ -1,0 +1,64 @@
+{
+  "run_id": "official-final-four-way-24case",
+  "run_role": "official_final",
+  "split": "validation",
+  "sample_count": 24,
+  "selection_seed": 3345,
+  "ordering_rule": "canonical_validation_loader_order_then_first_24_bounded_phase4_handoff",
+  "fallback_used": true,
+  "fallback_reason": "bounded Phase 4 handoff run for immediate four-way validation review; full validation split remains the preferred Phase 9 expansion if compute time allows",
+  "full_split_target": false,
+  "output_root": "_artefatos/pop909-conditioned-reconstruction",
+  "device": "cpu",
+  "overwrite": true,
+  "loader": {
+    "batch_size": 1,
+    "portion": 8,
+    "shift_low": -6,
+    "shift_high": 5,
+    "num_bar": 2,
+    "contain_chord": true,
+    "seed": 3345,
+    "data_path": "base_model/data/POP09-PIANOROLL-4-bin-quantization",
+    "index_file_path": "base_model/data/index.xlsx"
+  },
+  "checkpoints": {
+    "authors": {
+      "role": "authors_reference",
+      "path": "model_param/polydis-v1.pt",
+      "provenance_note": "Authors' released/public checkpoint; exact equivalence to paper final/best checkpoint remains qualified.",
+      "payload_format": "authors_released_state_dict",
+      "accepted": true
+    },
+    "ours_epoch4": {
+      "role": "ours_best_validation_epoch4",
+      "path": "_artefatos/cluster-pop909-phase8-338855/results/result_2026-06-24_191514/models/pop909-phase8-representative-20260624-191423_final-state_state.pt",
+      "provenance_note": "Our Phase 8 best-validation diagnostic checkpoint. Validation loss was lower at epoch 4 than later protocol-completion epochs.",
+      "wandb_run_id": "phase8-1782136259-24729",
+      "wandb_group": "pop909-phase8-representative-20260622-155059",
+      "accepted": true,
+      "payload_format": "training_state",
+      "epoch": 4
+    },
+    "ours_epoch6": {
+      "role": "ours_protocol_final_epoch6",
+      "path": "_artefatos/cluster-pop909-phase8-341594/results/result_2026-06-25_212850/models/pop909-phase8-representative-20260625-212752_final-state_state.pt",
+      "provenance_note": "Our Phase 8 protocol-completion checkpoint after the planned six-epoch authors-style run. Not the best validation-loss checkpoint.",
+      "wandb_run_id": "phase8-1782136259-24729",
+      "wandb_group": "pop909-phase8-representative-20260622-155059",
+      "accepted": true,
+      "payload_format": "training_state",
+      "epoch": 6
+    }
+  },
+  "asset_generation": {
+    "midi": true,
+    "audio": true,
+    "references": [
+      "original",
+      "authors",
+      "ours_epoch4",
+      "ours_epoch6"
+    ]
+  }
+}

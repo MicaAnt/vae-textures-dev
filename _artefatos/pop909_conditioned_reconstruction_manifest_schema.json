@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pop909_conditioned_reconstruction_manifest_schema.json",
+  "title": "POP909 Conditioned Reconstruction Manifest Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "run_role",
+    "split",
+    "segment_id",
+    "loader_config",
+    "checkpoints",
+    "losses",
+    "deltas",
+    "ranking"
+  ],
+  "properties": {
+    "manifest_version": { "type": "string", "const": "1.0" },
+    "run_role": {
+      "type": "string",
+      "enum": ["dry_run", "official_final", "train_diagnostic"]
+    },
+    "split": {
+      "type": "string",
+      "enum": ["validation", "train"]
+    },
+    "split_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["official", "full_split_target", "fallback_used"],
+      "properties": {
+        "official": { "type": "boolean" },
+        "full_split_target": { "type": "boolean" },
+        "fallback_used": { "type": "boolean" },
+        "fallback_reason": { "type": ["string", "null"] },
+        "fallback_seed": { "type": ["integer", "null"] },
+        "fallback_sample_count": { "type": ["integer", "null"], "minimum": 1 },
+        "ordering_rule": { "type": "string" }
+      }
+    },
+    "segment_id": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compound_id",
+        "npz_path",
+        "sorted_file_index",
+        "dataset_index",
+        "loader_index",
+        "shift",
+        "num_bar",
+        "loader_seed"
+      ],
+      "properties": {
+        "compound_id": { "type": "string" },
+        "npz_path": { "type": "string" },
+        "sorted_file_index": { "type": "integer", "minimum": 0 },
+        "dataset_index": { "type": "integer", "minimum": 0 },
+        "loader_index": { "type": "integer", "minimum": 0 },
+        "shift": { "type": "integer" },
+        "num_bar": { "type": "integer", "minimum": 1 },
+        "loader_seed": { "type": "integer" },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "integer", "boolean", "null"] }
+        }
+      }
+    },
+    "loader_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "batch_size": { "type": ["integer", "null"] },
+        "portion": { "type": ["integer", "null"] },
+        "shift_low": { "type": ["integer", "null"] },
+        "shift_high": { "type": ["integer", "null"] },
+        "contain_chord": { "type": ["boolean", "null"] },
+        "data_path": { "type": ["string", "null"] },
+        "index_file_path": { "type": ["string", "null"] }
+      }
+    },
+    "checkpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authors", "ours"],
+      "properties": {
+        "authors": { "$ref": "#/$defs/checkpoint_ref" },
+        "ours": { "$ref": "#/$defs/checkpoint_ref" }
+      }
+    },
+    "losses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authors", "ours"],
+      "properties": {
+        "authors": { "$ref": "#/$defs/loss_components" },
+        "ours": { "$ref": "#/$defs/loss_components" }
+      }
+    },
+    "deltas": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "loss_signed": { "type": "number", "description": "ours.loss - authors.loss" },
+        "loss_abs": { "type": "number" },
+        "recon_loss_signed": { "type": ["number", "null"] },
+        "recon_loss_abs": { "type": ["number", "null"] },
+        "chord_loss_signed": { "type": ["number", "null"] },
+        "kl_rhy_signed": { "type": ["number", "null"] }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stratum": {
+          "type": ["string", "null"],
+          "enum": ["near_tie", "authors_much_better", "ours_much_better", "median_representative", null]
+        },
+        "rank_by_loss_abs": { "type": ["integer", "null"], "minimum": 1 },
+        "rank_by_authors_advantage": { "type": ["integer", "null"], "minimum": 1 },
+        "rank_by_ours_advantage": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "original_midi_path": { "type": ["string", "null"] },
+        "authors_midi_path": { "type": ["string", "null"] },
+        "ours_midi_path": { "type": ["string", "null"] },
+        "original_audio_path": { "type": ["string", "null"] },
+        "authors_audio_path": { "type": ["string", "null"] },
+        "ours_audio_path": { "type": ["string", "null"] },
+        "piano_roll_figure_path": { "type": ["string", "null"] },
+        "notebook_notes_path": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "$defs": {
+    "checkpoint_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "path", "provenance_note"],
+      "properties": {
+        "role": { "type": "string" },
+        "path": { "type": "string" },
+        "run_id": { "type": ["string", "null"] },
+        "wandb_run_id": { "type": ["string", "null"] },
+        "wandb_group": { "type": ["string", "null"] },
+        "provenance_note": { "type": "string" }
+      }
+    },
+    "loss_components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loss", "recon_loss", "pl", "dl", "kl_loss", "kl_chd", "kl_rhy", "chord_loss", "root_loss", "chroma_loss", "bass_loss"],
+      "properties": {
+        "loss": { "type": "number" },
+        "recon_loss": { "type": "number" },
+        "pl": { "type": "number" },
+        "dl": { "type": "number" },
+        "kl_loss": { "type": "number" },
+        "kl_chd": { "type": "number" },
+        "kl_rhy": { "type": "number" },
+        "chord_loss": { "type": "number" },
+        "root_loss": { "type": "number" },
+        "chroma_loss": { "type": "number" },
+        "bass_loss": { "type": "number" }
+      }
+    }
+  }
+}

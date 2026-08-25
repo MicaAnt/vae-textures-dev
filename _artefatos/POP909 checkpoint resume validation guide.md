@@ -29,6 +29,7 @@ Existing controls remain valid:
 - `VAE_N_EPOCH`
 - `VAE_LIMIT_TRAIN_SAMPLES`
 - `VAE_LIMIT_VAL_SAMPLES`
+- `VAE_LIMIT_TRAIN_SHUFFLE`: optional; when set to `1`, bounded subset tests keep train-batch shuffling enabled so the DataLoader consumes RNG like the representative training path.
 - `VAE_LR`
 - `VAE_RUN_NAME`
 - `WANDB_ENABLED`
@@ -104,6 +105,7 @@ Expected W&B metric evidence includes:
 - `train/step` continuing above the initial run's value when using the same run context or clearly documented resumed leg naming.
 - `val/step` continuing or being documented per resumed leg.
 - `epoch/duration_seconds` for each completed epoch.
+- `checkpoint/<kind>_save_seconds` and `checkpoint/last_save_seconds` when W&B is enabled.
 - `epoch/train_loss` and `epoch/valid_loss`, with the existing caveat that they are sums over batches.
 
 Expected artifact evidence, if `WANDB_CHECKPOINT_POLICY` includes state kinds:
@@ -173,11 +175,11 @@ This proves local epoch-boundary resume continuity before the cluster `sbatch` r
 
 ## Human tutorial gate
 
-Before accepting the local exact-continuity proof, the user must follow `POP909 exact checkpoint resume tutorial.md`: read the relevant code, run the verifier manually, inspect the generated checkpoints, and record an `accept`, `rerun`, or `block` decision. Agent-run evidence alone is not acceptance.
+Local exact-continuity proof decision: `accept` on 2026-06-04. The user followed the numbered `base_model/resume_continuity_test/README.md` flow enough to report being convinced by the results. Agent-run evidence alone was not used as acceptance.
 
 ## Exact continuity evidence
 
-A deterministic local A/B verifier now proves epoch-boundary resume continuity beyond the earlier "Epoch: 02" smoke evidence. The verifier runs three bounded CPU jobs with `WANDB_ENABLED=0`, `CUDA_VISIBLE_DEVICES=`, `VAE_SEED=3345`, `VAE_BATCH_SIZE=2`, `VAE_LIMIT_TRAIN_SAMPLES=4`, and `VAE_LIMIT_VAL_SAMPLES=2`:
+A deterministic local A/B continuity test now proves epoch-boundary resume continuity beyond the earlier "Epoch: 02" smoke evidence. The numbered continuity test runs three bounded CPU jobs with `WANDB_ENABLED=0`, `CUDA_VISIBLE_DEVICES=`, `VAE_SEED=3345`, `VAE_BATCH_SIZE=2`, `VAE_LIMIT_TRAIN_SAMPLES=4`, `VAE_LIMIT_VAL_SAMPLES=2`, and `VAE_LIMIT_TRAIN_SHUFFLE=1`:
 
 1. Two epochs uninterrupted.
 2. One epoch initial leg, saving `last-state`.
@@ -186,22 +188,99 @@ A deterministic local A/B verifier now proves epoch-boundary resume continuity b
 Command:
 
 ```bash
-python vae-textures-dev/base_model/verify_exact_resume_continuity.py
+python vae-textures-dev/base_model/resume_continuity_test/01_train_direct_2_epochs.py
+python vae-textures-dev/base_model/resume_continuity_test/02_train_one_epoch_checkpoint.py
+python vae-textures-dev/base_model/resume_continuity_test/03_resume_second_epoch.py
+python vae-textures-dev/base_model/resume_continuity_test/04_compare_final_states.py
+python vae-textures-dev/base_model/resume_continuity_test/05_inspect_weights.py
 ```
 
-Observed 2026-06-04 evidence:
+Expected result shape after the user runs the numbered test:
 
 ```text
-[resume] Loaded training state from ... | epoch=1 train_step=2 val_step=1 best_valid_loss=9.850223541259766
-Epoch: 02 | Time: 0m 10s
-[verify] exact resume continuity PASSED
-[verify] resumed epoch 2 matches uninterrupted two-epoch training state
+[test] STEP 03: resume from epoch-1 checkpoint and run epoch 2
+[resume] Loaded training state from ... | epoch=1 train_step=... val_step=... best_valid_loss=...
+Epoch: 02 | Time: ...
+[test] STEP 04: compare final training states
+[test] RESULT=PASSED
 ```
 
-The comparison checks final full-state checkpoints for `epoch`, `train_step`, `val_step`, `best_valid_loss`, model tensors, optimizer state, learning-rate scheduler state, parameter-scheduler steps, and RNG state. This means the resumed epoch 2 is not a fake relabeling: under deterministic CPU conditions, it reaches the same final training state as an uninterrupted two-epoch run.
+Acceptance still requires inspecting:
 
-Remaining caveat: exact equality on GPU can still depend on deterministic CUDA kernel behavior. The cluster `sbatch` probe should prove operational resume evidence, while this verifier proves technical state continuity in the deterministic local setting.
+```text
+base_model/resume_continuity_test/outputs/manifest.json
+base_model/resume_continuity_test/outputs/reports/state_comparison.txt
+base_model/resume_continuity_test/outputs/reports/weight_diff_report.csv
+base_model/resume_continuity_test/outputs/reports/weight_inspection.csv
+```
+
+The comparison step checks final full-state checkpoints for `epoch`, `train_step`, `val_step`, `best_valid_loss`, model tensors, optimizer state, learning-rate scheduler state, parameter-scheduler steps, and RNG state. The report now separates those checks into model, optimizer, scheduler, counters, and RNG categories before emitting the strict overall `RESULT=PASSED`. This means the resumed epoch 2 is not a fake relabeling: under deterministic CPU conditions, it reaches the same final training state as an uninterrupted two-epoch run.
+
+The bounded test now sets `VAE_LIMIT_TRAIN_SHUFFLE=1` through the continuity helper/Slurm submitter so even the tiny subset path exercises shuffled train-batch iteration and the associated RNG consumption.
+
+Remaining caveat: exact equality on GPU can still depend on deterministic CUDA kernel behavior. The training script sets CuDNN deterministic mode and disables benchmarking, but it does not globally force `torch.use_deterministic_algorithms(True)` or require `CUBLAS_WORKSPACE_CONFIG`. The cluster `sbatch` probe should therefore be read as operational GPU/W&B/checkpoint evidence; the local CPU continuity test remains the strongest exact-determinism proof.
+
+The continuity helper now refuses ambiguous checkpoint matches instead of selecting by filesystem modification time. If a rerun reuses an old manifest/run id and leaves stale matching result directories behind, clean the stale outputs or start a fresh manifest before interpreting the result.
+
+Hardening rerun on 2026-06-10 passed with `limit_train_shuffle=true` and run id `1781106640-47483`. The category summary was: model PASS, optimizer PASS, scheduler PASS, counters PASS, RNG PASS, with `non_equal_weight_tensors=0`.
+
+## GPU checkpoint timing evidence
+
+The final Phase 7 validation requested by supervisor feedback was accepted after
+the hardened cluster GPU A/B run was inspected. Use the default exact mode from the
+Slurm submitter after syncing runtime files:
+
+```bash
+scripts/sync_runtime_to_cluster.sh sync
+# on the cluster login node, inside /home/<user>/vae-textures-dev:
+scripts/submit_pop909_resume_probe.sh exact
+```
+
+Evidence to collect from the job:
+
+- Slurm job id.
+- stdout/stderr tails.
+- `sacct -j <job_id> --format=JobID,JobName%30,State,Elapsed,Timelimit,AllocTRES%60,ExitCode`.
+- `base_model/resume_continuity_test/outputs/manifest.json`.
+- `base_model/resume_continuity_test/outputs/reports/state_comparison.txt`, including category summary for model, optimizer, scheduler, counters, and RNG.
+- `base_model/resume_continuity_test/outputs/reports/weight_diff_report.csv`.
+- `base_model/resume_continuity_test/outputs/reports/weight_inspection.csv`.
+- Timing lines: `Epoch train/eval seconds`, `Saved model weights in`, and `Saved training state`.
+- W&B group containing separate direct, initial, and resumed mini-training runs.
+- W&B config/metrics/artifacts for those three mini-runs.
+
+Decision rule:
+
+```text
+checkpoint overhead percent = checkpoint save seconds / epoch train+eval seconds
+```
+
+If W&B auth/artifact upload and checkpoint overhead are both acceptable, keep checkpointing every epoch for Phase 8.
+If overhead is large, choose checkpoint every X epochs and record the chosen X.
+
+GPU/timing decision: accept. Checkpointing every epoch is acceptable for Phase 8 based on the small probe timing; include the measured overhead caveat in the supervisor package.
 
 ## Resume probe decision
 
-Pending.
+Local exact-continuity test: `accept` on 2026-06-04.
+
+Cluster sbatch resume probe: `accept` on 2026-06-10.
+
+Accepted evidence:
+
+- Slurm job: `332828`.
+- Slurm state: `COMPLETED`, exit code `0:0`, elapsed `00:04:44`, GPU allocation `gres/gpu:a40-48=1`.
+- W&B group: `pop909-resume-probe-20260610-183406`.
+- W&B runs:
+  - `resume-test-direct-1781109342-1868350` at `https://wandb.ai/micael-antunes-lis-cnrs/pop909-reproduction/runs/wtx7va8t`.
+  - `resume-test-initial-1781109342-1868350` at `https://wandb.ai/micael-antunes-lis-cnrs/pop909-reproduction/runs/9d2mr1rr`.
+  - `resume-test-resumed-1781109342-1868350` at `https://wandb.ai/micael-antunes-lis-cnrs/pop909-reproduction/runs/o5egtenn`.
+- Downloaded artifacts: `vae-textures-dev/_artefatos/cluster-pop909-resume-probe-332828/`.
+- Manifest: GPU mode, W&B enabled, `limit_train_shuffle=true`, run id `1781109342-1868350`.
+- Comparison report: model PASS, optimizer PASS, scheduler PASS, counters PASS, RNG PASS, `RESULT=PASSED`.
+- Stdout: `non_equal_weight_tensors=0`, resumed leg used `resume_from=/workspace/base_model/result_2026-06-10_183731/models/resume-test-initial-1781109342-1868350_last-state_state.pt`.
+- W&B stderr: metrics, checkpoint timing, and checkpoint artifacts synced for direct, initial, and resumed mini-runs.
+
+Resume probe decision: accept.
+
+Remaining caveat: this is still a small bounded validation run, not the representative Phase 8 training run. Phase 8 can now use the accepted checkpoint/resume and W&B path, while the supervisor-facing package should state the CUDA determinism caveat and the measured checkpoint overhead from this probe.
